@@ -83,11 +83,13 @@ func (z *ZhiPu) RequestReply(userid uint, question string) (string, error) {
 
 	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
+		userQueue.Remove(userQueue.Back())
 		return "", fmt.Errorf("failed to marshal request body: %v", err)
 	}
 
 	req, err := http.NewRequest("POST", "https://open.bigmodel.cn/api/paas/v4/chat/completions", bytes.NewBuffer(jsonBody))
 	if err != nil {
+		userQueue.Remove(userQueue.Back())
 		return "", fmt.Errorf("failed to create request: %v", err)
 	}
 
@@ -96,25 +98,30 @@ func (z *ZhiPu) RequestReply(userid uint, question string) (string, error) {
 
 	resp, err := z.httpClient.Do(req)
 	if err != nil {
+		userQueue.Remove(userQueue.Back())
 		return "", fmt.Errorf("request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		userQueue.Remove(userQueue.Back())
 		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		userQueue.Remove(userQueue.Back())
 		return "", fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	var result ChatCompletionResponse
 	if err := json.Unmarshal(body, &result); err != nil {
+		userQueue.Remove(userQueue.Back())
 		return "", fmt.Errorf("failed to unmarshal response: %v", err)
 	}
 
 	if len(result.Choices) == 0 {
+		userQueue.Remove(userQueue.Back())
 		return "", errors.New("no choices in response")
 	}
 
