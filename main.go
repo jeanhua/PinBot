@@ -162,6 +162,17 @@ func handleGroup(msg model.GroupMessage) {
 
 	trimText := strings.TrimSpace(text)
 
+	if strings.TrimSpace(text) == "" {
+		return
+	} else if trimText == "帮助" || trimText == "help" {
+		chain := messageChain.Group(msg.GroupId)
+		chain.Reply(msg.MessageId)
+		chain.Mention(msg.UserId)
+		chain.Text(" @我发送 清除记录 可以清除聊天记录哦")
+		messageChain.SendMessage(chain)
+		return
+	}
+
 	if !mention {
 
 		// 特性
@@ -194,16 +205,6 @@ func handleGroup(msg model.GroupMessage) {
 		return
 	}
 
-	if strings.TrimSpace(text) == "" {
-		return
-	} else if trimText == "帮助" || trimText == "help" {
-		chain := messageChain.Group(msg.GroupId)
-		chain.Reply(msg.MessageId)
-		chain.Mention(msg.UserId)
-		chain.Text(" @我发送 清除记录 可以清除聊天记录哦")
-		messageChain.SendMessage(chain)
-		return
-	}
 	llmLock.RLock()
 	if ready == false {
 		chain := messageChain.Group(msg.GroupId)
