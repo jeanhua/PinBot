@@ -179,7 +179,7 @@ func handleGroup(msg model.GroupMessage) {
 
 		// 复读机
 		repeatlock.Lock()
-		if repeat.count >= 2 && repeat.text == strings.TrimSpace(text) {
+		if repeat.count >= 3 && repeat.text == strings.TrimSpace(text) {
 			chain := messageChain.Group(msg.GroupId)
 			chain.Text(repeat.text)
 			messageChain.SendMessage(chain)
