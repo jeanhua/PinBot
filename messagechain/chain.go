@@ -1,0 +1,145 @@
+package messageChain
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+)
+
+const (
+	DEBUG = false
+)
+
+type MessageChain interface {
+	Text(text string)
+	Reply(userid int)
+	Mention(userid int)
+	build() []byte
+}
+
+type FriendChain struct {
+	Userid  string        `json:"user_id"`
+	Message []MessageData `json:"message"`
+}
+
+type GroupChain struct {
+	Groupid string        `json:"group_id"`
+	Message []MessageData `json:"message"`
+}
+
+type MessageData struct {
+	Type string                 `json:"type"`
+	Data map[string]interface{} `json:"data"`
+}
+
+func Group(groupUin int) *GroupChain {
+	return &GroupChain{
+		Groupid: strconv.Itoa(groupUin),
+		Message: make([]MessageData, 0),
+	}
+}
+
+func Friend(friendUin int) *FriendChain {
+	return &FriendChain{
+		Userid:  strconv.Itoa(friendUin),
+		Message: make([]MessageData, 0),
+	}
+}
+
+func (mc *FriendChain) Text(text string) {
+	mc.Message = append(mc.Message, MessageData{
+		Type: "text",
+		Data: map[string]interface{}{
+			"text": text,
+		},
+	})
+}
+func (mc *GroupChain) Text(text string) {
+	mc.Message = append(mc.Message, MessageData{
+		Type: "text",
+		Data: map[string]interface{}{
+			"text": text,
+		},
+	})
+}
+
+func (mc *FriendChain) Reply(id int) {
+	mc.Message = append(mc.Message, MessageData{
+		Type: "reply",
+		Data: map[string]interface{}{
+			"id": id,
+		},
+	})
+}
+func (mc *GroupChain) Reply(id int) {
+	mc.Message = append(mc.Message, MessageData{
+		Type: "reply",
+		Data: map[string]interface{}{
+			"id": id,
+		},
+	})
+}
+func (mc *FriendChain) Mention(userid int) {
+	mc.Message = append(mc.Message, MessageData{
+		Type: "at",
+		Data: map[string]interface{}{
+			"qq": strconv.Itoa(userid),
+		},
+	})
+}
+func (mc *GroupChain) Mention(userid int) {
+	mc.Message = append(mc.Message, MessageData{
+		Type: "at",
+		Data: map[string]interface{}{
+			"qq": strconv.Itoa(userid),
+		},
+	})
+}
+func (mc *FriendChain) build() []byte {
+	result, err := json.Marshal(&mc)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	if DEBUG {
+		fmt.Println(string(result))
+	}
+	return result
+}
+func (mc *GroupChain) build() []byte {
+	result, err := json.Marshal(&mc)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	if DEBUG {
+		fmt.Println(string(result))
+	}
+	return result
+}
+
+func SendMessage(chain MessageChain) error {
+	data := chain.build()
+	if data == nil {
+		return fmt.Errorf("failed to build message")
+	}
+
+	url := "http://localhost:7824/send_private_msg"
+	if _, ok := chain.(*GroupChain); ok {
+		url = "http://localhost:7824/send_group_msg"
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+	return nil
+}
