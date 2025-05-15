@@ -163,9 +163,23 @@ func handleGroup(msg model.GroupMessage) {
 	trimText := strings.TrimSpace(text)
 
 	if !mention {
+
+		// 特性
+		if trimText == "?" || trimText == "？" {
+			chain := messageChain.Group(msg.GroupId)
+			chain.Text("¿")
+			messageChain.SendMessage(chain)
+			return
+		} else if strings.Contains(trimText, "我是") {
+			chain := messageChain.Group(msg.GroupId)
+			chain.Text("你是?")
+			messageChain.SendMessage(chain)
+			return
+		}
+
 		// 复读机
 		repeatlock.Lock()
-		if repeat.count >= 3 && repeat.text == strings.TrimSpace(text) {
+		if repeat.count >= 2 && repeat.text == strings.TrimSpace(text) {
 			chain := messageChain.Group(msg.GroupId)
 			chain.Text(repeat.text)
 			messageChain.SendMessage(chain)
@@ -179,6 +193,7 @@ func handleGroup(msg model.GroupMessage) {
 		repeatlock.Unlock()
 		return
 	}
+
 	if strings.TrimSpace(text) == "" {
 		return
 	} else if trimText == "帮助" || trimText == "help" {
