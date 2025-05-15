@@ -90,6 +90,7 @@ func handelPrivate(msg model.FriendMessage) {
 	} else if trimText == "帮助" || trimText == "help" {
 		chain := messageChain.Friend(msg.UserId)
 		chain.Text(" @我发送 清除记录 可以清除聊天记录哦")
+		messageChain.SendMessage(chain)
 		return
 	}
 
@@ -185,6 +186,7 @@ func handleGroup(msg model.GroupMessage) {
 		chain.Reply(msg.MessageId)
 		chain.Mention(msg.UserId)
 		chain.Text(" @我发送 清除记录 可以清除聊天记录哦")
+		messageChain.SendMessage(chain)
 		return
 	}
 	llmLock.RLock()
