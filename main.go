@@ -219,7 +219,7 @@ func handleGroup(msg model.GroupMessage) {
 	uid := msg.UserId
 
 	if strings.TrimSpace(text) == "清除记录" {
-		zhipu.Clear(uint(uid))
+		zhipu.Clear(uint(msg.GroupId))
 		chain := messageChain.Group(msg.GroupId)
 		chain.Mention(int(uid))
 		chain.Text(" 清除成功")
@@ -240,7 +240,7 @@ func handleGroup(msg model.GroupMessage) {
 		}
 		ready = false
 		llmLock.Unlock()
-		reply, err := zhipu.RequestReply(uint(uid), text)
+		reply, err := zhipu.RequestReply(uint(groupId), text)
 		if err != nil {
 			log.Println("zhipu error: ", err)
 			chain := messageChain.Group(groupId)
