@@ -255,7 +255,7 @@ func handleGroup(msg model.GroupMessage) {
 			return
 		}
 
-		if len(reply) <= 350 {
+		if len(reply) >= 350 {
 			chain := messageChain.Group(groupId)
 			chain.Reply(messageId)
 			chain.Mention(int(uid))
