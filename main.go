@@ -128,10 +128,24 @@ func handelPrivate(msg model.FriendMessage) {
 			llmLock.Unlock()
 			return
 		}
+		reply_length := len(reply)
+		if reply_length <= 1000 {
+			chain := messageChain.Friend(uid)
+			chain.Text(reply)
+			messageChain.SendMessage(chain)
+		} else {
+			for i := 0; i < reply_length/1000; i++ {
+				chain := messageChain.Friend(uid)
+				if (i+1)*1000 < reply_length {
+					chain.Text(reply[i*1000 : (i+1)*1000])
+					messageChain.SendMessage(chain)
+				} else {
+					chain.Text(reply[i*1000:])
+					messageChain.SendMessage(chain)
+				}
+			}
+		}
 
-		chain := messageChain.Friend(uid)
-		chain.Text(strings.TrimSpace(reply))
-		messageChain.SendMessage(chain)
 		llmLock.Lock()
 		ready = true
 		llmLock.Unlock()
@@ -255,15 +269,32 @@ func handleGroup(msg model.GroupMessage) {
 			return
 		}
 
-		if len(reply) >= 450 {
+		reply_length := len(reply)
+
+		if reply_length <= 450 {
+			aimsg := messageChain.AIMessage(groupId, "lucy-voice-suxinjiejie", reply)
+			aimsg.Send()
+		} else if reply_length <= 1000 {
 			chain := messageChain.Group(groupId)
 			chain.Reply(messageId)
 			chain.Mention(int(uid))
-			chain.Text(" " + strings.TrimSpace(reply))
+			chain.Text(" " + reply)
 			messageChain.SendMessage(chain)
 		} else {
-			aimsg := messageChain.AIMessage(groupId, "lucy-voice-suxinjiejie", reply)
-			aimsg.Send()
+			for i := 0; i < reply_length/1000; i++ {
+				chain := messageChain.Group(groupId)
+				if i == 0 {
+					chain.Reply(messageId)
+					chain.Mention(int(uid))
+				}
+				if (i+1)*1000 < reply_length {
+					chain.Text(reply[i*1000 : (i+1)*1000])
+					messageChain.SendMessage(chain)
+				} else {
+					chain.Text(reply[i*1000:])
+					messageChain.SendMessage(chain)
+				}
+			}
 		}
 
 		llmLock.Lock()
