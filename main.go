@@ -255,11 +255,17 @@ func handleGroup(msg model.GroupMessage) {
 			return
 		}
 
-		chain := messageChain.Group(groupId)
-		chain.Reply(messageId)
-		chain.Mention(int(uid))
-		chain.Text(" " + strings.TrimSpace(reply))
-		messageChain.SendMessage(chain)
+		if len(reply) <= 350 {
+			chain := messageChain.Group(groupId)
+			chain.Reply(messageId)
+			chain.Mention(int(uid))
+			chain.Text(" " + strings.TrimSpace(reply))
+			messageChain.SendMessage(chain)
+		} else {
+			aimsg := messageChain.AIMessage(groupId, "酥心御姐", reply)
+			aimsg.Send()
+		}
+
 		llmLock.Lock()
 		ready = true
 		llmLock.Unlock()
