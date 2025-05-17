@@ -59,7 +59,7 @@ func (z *ZhiPu) RequestReply(userid uint, question string) (string, error) {
 		Content: question,
 	})
 
-	for userQueue.Len() > 30 {
+	for userQueue.Len() > 80 {
 		userQueue.Remove(userQueue.Front())
 	}
 
