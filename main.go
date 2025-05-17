@@ -137,12 +137,12 @@ func handelPrivate(msg model.FriendMessage) {
 			messageChain.SendMessage(chain)
 		} else {
 
-			for i := 0; i < reply_length/500; i++ {
+			for i := 0; i <= reply_length/500; i++ {
 				chain := messageChain.Friend(uid)
 				if (i+1)*500 < reply_length {
 					chain.Text(string(rreply[i*500 : (i+1)*500]))
 					messageChain.SendMessage(chain)
-				} else {
+				} else if i*500 < reply_length {
 					chain.Text(string(rreply[i*500:]))
 					messageChain.SendMessage(chain)
 				}
@@ -286,7 +286,7 @@ func handleGroup(msg model.GroupMessage) {
 			chain.Text(" " + reply)
 			messageChain.SendMessage(chain)
 		} else {
-			for i := 0; i < reply_length/500; i++ {
+			for i := 0; i <= reply_length/500; i++ {
 				chain := messageChain.Group(groupId)
 				if i == 0 {
 					chain.Reply(messageId)
@@ -295,7 +295,7 @@ func handleGroup(msg model.GroupMessage) {
 				if (i+1)*500 < reply_length {
 					chain.Text(string(rreply[i*500 : (i+1)*500]))
 					messageChain.SendMessage(chain)
-				} else {
+				} else if i*500 < reply_length {
 					chain.Text(string(rreply[i*500:]))
 					messageChain.SendMessage(chain)
 				}
