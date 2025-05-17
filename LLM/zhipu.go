@@ -135,7 +135,7 @@ func (z *ZhiPu) RequestReply(userid uint, question string) (string, error) {
 		Content: content,
 	})
 
-	return content, nil
+	return strings.TrimSpace(content), nil
 }
 
 func splitThinkTag(s string) []string {
