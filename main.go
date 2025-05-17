@@ -262,7 +262,7 @@ func handleGroup(msg model.GroupMessage) {
 			chain.Text(" " + strings.TrimSpace(reply))
 			messageChain.SendMessage(chain)
 		} else {
-			aimsg := messageChain.AIMessage(groupId, "酥心御姐", reply)
+			aimsg := messageChain.AIMessage(groupId, "lucy-voice-suxinjiejie", reply)
 			aimsg.Send()
 		}
 
