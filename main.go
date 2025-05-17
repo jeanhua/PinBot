@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	llm "github.com/jeanhua/PinBot/LLM"
+	botcommand "github.com/jeanhua/PinBot/botCommand"
 	messageChain "github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
 )
@@ -87,10 +88,11 @@ func handelPrivate(msg model.FriendMessage) {
 		return
 	} else if strings.TrimSpace(text) == "" {
 		return
-	} else if trimText == "帮助" || trimText == "help" {
-		chain := messageChain.Friend(msg.UserId)
-		chain.Text(" @我发送 清除记录 可以清除聊天记录哦")
-		messageChain.SendMessage(chain)
+	}
+
+	// 处理指令
+	ret := botcommand.DealFriendCommand(trimText, &msg)
+	if ret {
 		return
 	}
 
@@ -164,12 +166,11 @@ func handleGroup(msg model.GroupMessage) {
 
 	if strings.TrimSpace(text) == "" {
 		return
-	} else if trimText == "帮助" || trimText == "help" {
-		chain := messageChain.Group(msg.GroupId)
-		chain.Reply(msg.MessageId)
-		chain.Mention(msg.UserId)
-		chain.Text(" @我发送 清除记录 可以清除聊天记录哦")
-		messageChain.SendMessage(chain)
+	}
+
+	// 处理指令
+	ret := botcommand.DealGroupCommand(trimText, &msg)
+	if ret {
 		return
 	}
 
