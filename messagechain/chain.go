@@ -4,13 +4,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/jeanhua/PinBot/model"
 )
 
 const (
-	DEBUG = false
+	DEBUG      = false
+	ServerHost = "http://localhost:7824"
 )
 
 type MessageChain interface {
@@ -35,6 +39,12 @@ type MessageData struct {
 	Data map[string]interface{} `json:"data"`
 }
 
+type AIMessageData struct {
+	GroupId   int    `json:"group_id"`
+	Character string `json:"character"`
+	Text      string `json:"text"`
+}
+
 func Group(groupUin int) *GroupChain {
 	return &GroupChain{
 		Groupid: strconv.Itoa(groupUin),
@@ -46,6 +56,14 @@ func Friend(friendUin int) *FriendChain {
 	return &FriendChain{
 		Userid:  strconv.Itoa(friendUin),
 		Message: make([]MessageData, 0),
+	}
+}
+
+func AIMessage(groupUin int, charactor string, text string) *AIMessageData {
+	return &AIMessageData{
+		GroupId:   groupUin,
+		Character: charactor,
+		Text:      text,
 	}
 }
 
@@ -121,23 +139,49 @@ func (mc *GroupChain) build() []byte {
 	return result
 }
 
-func SendMessage(chain MessageChain) error {
+func SendMessage(chain MessageChain) (*model.Response, error) {
 	data := chain.build()
 	if data == nil {
-		return fmt.Errorf("failed to build message")
+		return nil, fmt.Errorf("failed to build message")
 	}
 
-	url := "http://localhost:7824/send_private_msg"
+	url := ServerHost + "/send_private_msg"
 	if _, ok := chain.(*GroupChain); ok {
-		url = "http://localhost:7824/send_group_msg"
+		url = ServerHost + "/send_group_msg"
 	}
 
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+	back := &model.Response{}
+	bodyData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(bodyData, back)
+	if err != nil {
+		return nil, err
+	}
+	return back, nil
+}
+
+func (msg *AIMessageData) Send() error {
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+	url := ServerHost + "/send_group_ai_record"
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
