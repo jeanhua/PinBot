@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	llm "github.com/jeanhua/PinBot/LLM"
 	botcommand "github.com/jeanhua/PinBot/botCommand"
@@ -128,21 +129,24 @@ func handelPrivate(msg model.FriendMessage) {
 			llmLock.Unlock()
 			return
 		}
-		reply_length := len(reply)
-		if reply_length <= 1000 {
+		rreply := []rune(reply)
+		reply_length := len(rreply)
+		if reply_length <= 500 {
 			chain := messageChain.Friend(uid)
 			chain.Text(reply)
 			messageChain.SendMessage(chain)
 		} else {
-			for i := 0; i < reply_length/1000; i++ {
+
+			for i := 0; i < reply_length/500; i++ {
 				chain := messageChain.Friend(uid)
-				if (i+1)*1000 < reply_length {
-					chain.Text(reply[i*1000 : (i+1)*1000])
+				if (i+1)*500 < reply_length {
+					chain.Text(string(rreply[i*500 : (i+1)*500]))
 					messageChain.SendMessage(chain)
 				} else {
-					chain.Text(reply[i*1000:])
+					chain.Text(string(rreply[i*500:]))
 					messageChain.SendMessage(chain)
 				}
+				time.Sleep(time.Millisecond * 500)
 			}
 		}
 
@@ -269,31 +273,33 @@ func handleGroup(msg model.GroupMessage) {
 			return
 		}
 
-		reply_length := len(reply)
+		rreply := []rune(reply)
+		reply_length := len(rreply)
 
 		if reply_length <= 450 {
 			aimsg := messageChain.AIMessage(groupId, "lucy-voice-suxinjiejie", reply)
 			aimsg.Send()
-		} else if reply_length <= 1000 {
+		} else if reply_length <= 500 {
 			chain := messageChain.Group(groupId)
 			chain.Reply(messageId)
 			chain.Mention(int(uid))
 			chain.Text(" " + reply)
 			messageChain.SendMessage(chain)
 		} else {
-			for i := 0; i < reply_length/1000; i++ {
+			for i := 0; i < reply_length/500; i++ {
 				chain := messageChain.Group(groupId)
 				if i == 0 {
 					chain.Reply(messageId)
 					chain.Mention(int(uid))
 				}
-				if (i+1)*1000 < reply_length {
-					chain.Text(reply[i*1000 : (i+1)*1000])
+				if (i+1)*500 < reply_length {
+					chain.Text(string(rreply[i*500 : (i+1)*500]))
 					messageChain.SendMessage(chain)
 				} else {
-					chain.Text(reply[i*1000:])
+					chain.Text(string(rreply[i*500:]))
 					messageChain.SendMessage(chain)
 				}
+				time.Sleep(500 * time.Millisecond)
 			}
 		}
 
