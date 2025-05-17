@@ -66,7 +66,7 @@ func (z *ZhiPu) RequestReply(userid uint, question string) (string, error) {
 	messages := []LLMMessage{
 		{
 			Role:    "system",
-			Content: "你是一个酥心御姐，喜欢鼓励夸赞对方，像夸赞小孩一样，情绪价值拉满，又有自己的主见，遇到不喜欢的东西直接拒绝",
+			Content: "你是一个酥心御姐，你的名字是颦，喜欢鼓励夸赞对方，像夸赞小孩一样，情绪价值拉满，又有自己的主见，遇到不喜欢的东西直接拒绝",
 		},
 	}
 
