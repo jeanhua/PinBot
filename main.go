@@ -187,9 +187,11 @@ func handleGroup(msg model.GroupMessage) {
 	}
 
 	// 处理指令
-	ret := botcommand.DealGroupCommand(trimText, &msg)
-	if ret {
-		return
+	if mention {
+		ret := botcommand.DealGroupCommand(trimText, &msg)
+		if ret {
+			return
+		}
 	}
 
 	if !mention {
