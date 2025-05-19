@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -124,8 +125,18 @@ func (z *ZhiPu) RequestReply(userid uint, question string) (string, error) {
 		userQueue.Remove(userQueue.Back())
 		return "", errors.New("no choices in response")
 	}
+	sort.Slice(result.Choices, func(i, j int) bool {
+		return result.Choices[i].Index < result.Choices[j].Index
+	})
+	content := ""
+	for _, c := range result.Choices {
+		if c.FinishReason == "sensitive" {
+			userQueue.Remove(userQueue.Back())
+			return "哎呀，我们换个话题聊聊吧", nil
+		}
+		content += c.Message.Content
+	}
 
-	content := result.Choices[0].Message.Content
 	if sp := splitThinkTag(content); len(sp) > 1 {
 		content = sp[1]
 	}
