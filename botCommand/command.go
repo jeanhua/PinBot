@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	EnableAIAudio = true
+	EnableAIAudio = false
 )
 
 func DealGroupCommand(com string, msg *model.GroupMessage) bool {
