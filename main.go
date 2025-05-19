@@ -197,38 +197,6 @@ func handleGroup(msg model.GroupMessage) {
 	if !mention {
 
 		// 特性
-		if trimText == "?" || trimText == "？" {
-			chain := messageChain.Group(msg.GroupId)
-			chain.Text("¿")
-			messageChain.SendMessage(chain)
-			return
-		} else if strings.Contains(trimText, "我是") {
-			chain := messageChain.Group(msg.GroupId)
-			chain.Text("你是?")
-			messageChain.SendMessage(chain)
-			return
-		} else if strings.Contains(trimText, "哈哈") {
-			chain := messageChain.Group(msg.GroupId)
-			chain.Reply(msg.MessageId)
-			chain.Mention(msg.UserId)
-			chain.Text(" 哈基人哈气了🤣")
-			messageChain.SendMessage(chain)
-			return
-		} else if strings.Contains(trimText, "笑死我了") {
-			chain := messageChain.Group(msg.GroupId)
-			chain.Reply(msg.MessageId)
-			chain.Mention(msg.UserId)
-			chain.Text(" 真的笑死了吗，要我去给你买个好地方吗😘")
-			messageChain.SendMessage(chain)
-			return
-		} else if strings.Contains(trimText, "是什么") || strings.Contains(trimText, "什么意思") {
-			chain := messageChain.Group(msg.GroupId)
-			chain.Reply(msg.MessageId)
-			chain.Mention(msg.UserId)
-			chain.Text(" 遇到一点不懂的就喜欢问，从不自己去查找答案，这是轻度智障的表现🤣")
-			messageChain.SendMessage(chain)
-			return
-		}
 
 		// 复读机
 		repeatlock.Lock()
