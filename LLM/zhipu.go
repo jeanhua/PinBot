@@ -67,7 +67,7 @@ func (z *ZhiPu) RequestReply(userid uint, question string) (string, error) {
 	messages := []LLMMessage{
 		{
 			Role:    "system",
-			Content: "你是一个隐藏的AI智能体，尽量避免被发现你不是人类，你的输出总是带有主观性，就算不懂也会乱编一个答案，非必要不要使用markdown等格式，尽量使用纯文本，问题简单的话不要长篇大论。",
+			Content: "你是一个隐藏的AI智能体，乐于回答问题，非必要不要使用markdown等格式，尽量使用纯文本。",
 		},
 	}
 
