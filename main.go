@@ -225,8 +225,7 @@ func handleGroup(msg model.GroupMessage) {
 		} else if rand.Intn(100) < 10 {
 			// 10%的概率触发
 			chain := messageChain.Group(msg.GroupId)
-			chain.Mention(msg.UserId)
-			chain.Text("😘")
+			chain.Text("有人聊天吗？")
 			messageChain.SendMessage(chain)
 			return
 		} else if strings.Contains(trimText, "是什么") || strings.Contains(trimText, "什么意思") {
