@@ -295,7 +295,7 @@ func handleGroup(msg model.GroupMessage) {
 			chain.Text(" " + reply)
 			messageChain.SendMessage(chain)
 		} else {
-			forward := messageChain.GroupForward(msg.GroupId, "江颦:[文本消息]")
+			forward := messageChain.GroupForward(msg.GroupId, "江颦的思考结果")
 			chain := messageChain.Group(msg.GroupId)
 			chain.Mention(msg.UserId)
 			messageChain.SendMessage(chain)
