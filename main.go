@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -14,17 +16,33 @@ import (
 	botcommand "github.com/jeanhua/PinBot/botCommand"
 	messageChain "github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
+	"gopkg.in/yaml.v3"
 )
 
+// 调试
 var DEBUG bool
+
+// 智谱AI
 var zhipu *llm.ZhiPu
 
+// 大模型速率限制
 var llmLock sync.RWMutex
 var ready bool
+
+// 配置
+var config model.Config
 
 func main() {
 	DEBUG = false
 	ready = true
+	file, err := os.Open("./config.yaml")
+	if err != nil {
+		fmt.Println("error: ", err)
+	}
+	defer file.Close()
+	decoder := yaml.NewDecoder(file)
+	decoder.Decode(&config)
+
 	zhipu = llm.NewZhiPu()
 	http.HandleFunc("/Pinbot", Handler)
 	log.Println("Server starting on http://localhost:7823...")
@@ -277,21 +295,19 @@ func handleGroup(msg model.GroupMessage) {
 			chain.Text(" " + reply)
 			messageChain.SendMessage(chain)
 		} else {
+			forward := messageChain.GroupForward(msg.GroupId, "江颦:[文本消息]")
+			chain := messageChain.Group(msg.GroupId)
+			chain.Mention(msg.UserId)
+			messageChain.SendMessage(chain)
 			for i := 0; i <= reply_length/500; i++ {
-				chain := messageChain.Group(groupId)
-				if i == 0 {
-					chain.Reply(messageId)
-					chain.Mention(int(uid))
-				}
 				if (i+1)*500 < reply_length {
-					chain.Text(string(rreply[i*500 : (i+1)*500]))
-					messageChain.SendMessage(chain)
+					forward.Text(string(rreply[i*500:(i+1)*500]), msg.SelfId, "江颦")
 				} else if i*500 < reply_length {
-					chain.Text(string(rreply[i*500:]))
-					messageChain.SendMessage(chain)
+					forward.Text(string(rreply[i*500:]), msg.SelfId, "江颦")
 				}
 				time.Sleep(500 * time.Millisecond)
 			}
+			forward.Send()
 		}
 
 		llmLock.Lock()

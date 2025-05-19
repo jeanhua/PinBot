@@ -45,6 +45,22 @@ type AIMessageData struct {
 	Text      string `json:"text"`
 }
 
+type GroupForwardChain struct {
+	GroupId  int `json:"group_id"`
+	Messages []struct {
+		Type string `json:"type"`
+		Data struct {
+			UserId   string      `json:"user_id"`
+			NickName string      `json:"nickname"`
+			Content  MessageData `json:"content"`
+		} `json:"data"`
+	} `json:"messages"`
+	News    map[string]interface{} `json:"news"`
+	Prompt  string                 `json:"prompt"`
+	Summary string                 `json:"summary"`
+	Source  string                 `json:"source"`
+}
+
 func Group(groupUin int) *GroupChain {
 	return &GroupChain{
 		Groupid: strconv.Itoa(groupUin),
@@ -56,6 +72,18 @@ func Friend(friendUin int) *FriendChain {
 	return &FriendChain{
 		Userid:  strconv.Itoa(friendUin),
 		Message: make([]MessageData, 0),
+	}
+}
+
+func GroupForward(groupUin int, source string) *GroupForwardChain {
+	return &GroupForwardChain{
+		GroupId: groupUin,
+		Prompt:  "群聊的聊天记录",
+		Summary: "思考结果",
+		News: map[string]interface{}{
+			"text": "文本消息",
+		},
+		Source: source,
 	}
 }
 
@@ -80,6 +108,32 @@ func (mc *GroupChain) Text(text string) {
 		Type: "text",
 		Data: map[string]interface{}{
 			"text": text,
+		},
+	})
+}
+func (mc *GroupForwardChain) Text(text string, userId int, nickname string) {
+	mc.Messages = append(mc.Messages, struct {
+		Type string "json:\"type\""
+		Data struct {
+			UserId   string      "json:\"user_id\""
+			NickName string      "json:\"nickname\""
+			Content  MessageData "json:\"content\""
+		} "json:\"data\""
+	}{
+		Type: "node",
+		Data: struct {
+			UserId   string      "json:\"user_id\""
+			NickName string      "json:\"nickname\""
+			Content  MessageData "json:\"content\""
+		}{
+			UserId:   strconv.Itoa(userId),
+			NickName: nickname,
+			Content: MessageData{
+				Type: "text",
+				Data: map[string]interface{}{
+					"text": text,
+				},
+			},
 		},
 	})
 }
@@ -177,6 +231,23 @@ func (msg *AIMessageData) Send() error {
 		return err
 	}
 	url := ServerHost + "/send_group_ai_record"
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+	return nil
+}
+
+func (msg *GroupForwardChain) Send() error {
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+	url := ServerHost + "/send_group_forward_msg"
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return err
