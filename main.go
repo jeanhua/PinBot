@@ -305,8 +305,8 @@ func handleGroup(msg model.GroupMessage) {
 				} else if i*500 < reply_length {
 					forward.Text(string(rreply[i*500:]), msg.SelfId, "江颦")
 				}
-				time.Sleep(500 * time.Millisecond)
 			}
+			time.Sleep(500 * time.Millisecond)
 			forward.Send()
 		}
 
