@@ -1,12 +1,15 @@
 package botcommand
 
 import (
+	"sync"
+
 	messageChain "github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
 )
 
 var (
 	EnableAIAudio = false
+	CommandMu     sync.RWMutex
 )
 
 func DealGroupCommand(com string, msg *model.GroupMessage) bool {
@@ -22,7 +25,9 @@ func DealGroupCommand(com string, msg *model.GroupMessage) bool {
 		chain := messageChain.Group(msg.GroupId)
 		chain.Reply(msg.MessageId)
 		chain.Mention(msg.UserId)
+		CommandMu.Lock()
 		EnableAIAudio = true
+		CommandMu.Unlock()
 		chain.Text(" 已开启AI语音")
 		messageChain.SendMessage(chain)
 		return true
@@ -30,7 +35,9 @@ func DealGroupCommand(com string, msg *model.GroupMessage) bool {
 		chain := messageChain.Group(msg.GroupId)
 		chain.Reply(msg.MessageId)
 		chain.Mention(msg.UserId)
+		CommandMu.Lock()
 		EnableAIAudio = false
+		CommandMu.Unlock()
 		chain.Text(" 已关闭AI语音")
 		messageChain.SendMessage(chain)
 		return true

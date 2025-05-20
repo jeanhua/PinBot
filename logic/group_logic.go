@@ -129,6 +129,9 @@ func onGroupMessage(msg model.GroupMessage) {
 		rreply := []rune(reply)
 		reply_length := len(rreply)
 
+		botcommand.CommandMu.RLock()
+		defer botcommand.CommandMu.RUnlock()
+
 		if reply_length <= 450 && botcommand.EnableAIAudio {
 			aimsg := messageChain.AIMessage(groupId, "lucy-voice-suxinjiejie", reply)
 			aimsg.Send()
