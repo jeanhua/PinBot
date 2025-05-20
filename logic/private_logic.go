@@ -61,7 +61,11 @@ func onPrivateMessage(msg model.FriendMessage) {
 		}
 		ready = false
 		llmLock.Unlock()
+
+		Config_mu.RLock()
 		reply, err := zhipu.RequestReply(uint(uid), text, Config.AI_Prompt)
+		Config_mu.RUnlock()
+
 		if err != nil {
 			log.Println("zhipu error: ", err)
 			chain := messageChain.Friend(uid)

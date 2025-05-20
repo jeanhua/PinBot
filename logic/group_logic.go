@@ -108,7 +108,11 @@ func onGroupMessage(msg model.GroupMessage) {
 		}
 		ready = false
 		llmLock.Unlock()
+
+		Config_mu.RLock()
 		reply, err := zhipu.RequestReply(uint(groupId), text, Config.AI_Prompt)
+		Config_mu.RUnlock()
+
 		if err != nil {
 			log.Println("zhipu error: ", err)
 			chain := messageChain.Group(groupId)
