@@ -50,7 +50,7 @@ func Register() {
 }
 
 func watchConfig() {
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 	filemd5 := ""
 	for range ticker.C {
