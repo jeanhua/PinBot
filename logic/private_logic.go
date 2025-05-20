@@ -17,9 +17,11 @@ func onPrivateMessage(msg model.FriendMessage) {
 			text += t.Data["text"].(string)
 		}
 	}
+	config_mu.RLock()
 	if config.Debug {
 		log.Println(text)
 	}
+	config_mu.RUnlock()
 	trimText := strings.TrimSpace(text)
 	uid := msg.UserId
 	if strings.TrimSpace(text) == "清除记录" {

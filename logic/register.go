@@ -9,9 +9,11 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	llm "github.com/jeanhua/PinBot/LLM"
 	"github.com/jeanhua/PinBot/model"
+	"github.com/jeanhua/PinBot/utils"
 	"gopkg.in/yaml.v3"
 )
 
@@ -23,6 +25,7 @@ var llmLock sync.RWMutex
 var ready bool
 
 // 配置
+var config_mu sync.RWMutex
 var config model.Config
 
 func Register() {
@@ -32,12 +35,46 @@ func Register() {
 	}
 	defer file.Close()
 	decoder := yaml.NewDecoder(file)
-	decoder.Decode(&config)
+	config_mu.Lock()
+	err = decoder.Decode(&config)
+	config_mu.Unlock()
+	if err != nil {
+		fmt.Println("error config: ", err)
+	}
+	go watchConfig()
 	zhipu = llm.NewZhiPu()
 	http.HandleFunc("/Pinbot", Handler)
 	log.Println("Server starting on http://localhost:7823...")
 	ready = true
 	log.Fatal(http.ListenAndServe(":7823", nil))
+}
+
+func watchConfig() {
+	ticker := time.NewTicker(60 * time.Second)
+	defer ticker.Stop()
+	filemd5 := ""
+	for range ticker.C {
+		hash, err := utils.FileMD5("./config.yaml")
+		if err != nil {
+			log.Println("read config error: ", err)
+		}
+		if hash == filemd5 {
+			continue
+		}
+		filemd5 = hash
+		file, err := os.Open("./config.yaml")
+		if err != nil {
+			log.Println("error: ", err)
+		}
+		defer file.Close()
+		decoder := yaml.NewDecoder(file)
+		config_mu.Lock()
+		err = decoder.Decode(&config)
+		config_mu.Unlock()
+		if err != nil {
+			log.Println("error config: ", err)
+		}
+	}
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -66,6 +103,8 @@ func handleMessage(message []byte) {
 		return
 	}
 	if friendmsg.MessageType == "private" {
+		config_mu.RLock()
+		defer config_mu.RUnlock()
 		for _, uin := range config.Group.Exclude {
 			if uin == strconv.Itoa(friendmsg.UserId) {
 				return
@@ -79,6 +118,8 @@ func handleMessage(message []byte) {
 		}
 
 	} else if friendmsg.MessageType == "group" {
+		config_mu.RLock()
+		defer config_mu.RUnlock()
 		groupmsg := model.GroupMessage{}
 		err := json.Unmarshal(message, &groupmsg)
 		if err != nil {

@@ -32,9 +32,11 @@ func onGroupMessage(msg model.GroupMessage) {
 			}
 		}
 	}
+	config_mu.RLock()
 	if config.Debug {
 		log.Println(text)
 	}
+	config_mu.RUnlock()
 
 	trimText := strings.TrimSpace(text)
 
