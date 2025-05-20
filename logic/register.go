@@ -25,8 +25,8 @@ var llmLock sync.RWMutex
 var ready bool
 
 // 配置
-var config_mu sync.RWMutex
-var config model.Config
+var Config_mu sync.RWMutex
+var Config model.Config
 
 func Register() {
 	file, err := os.Open("./config.yaml")
@@ -35,9 +35,9 @@ func Register() {
 	}
 	defer file.Close()
 	decoder := yaml.NewDecoder(file)
-	config_mu.Lock()
-	err = decoder.Decode(&config)
-	config_mu.Unlock()
+	Config_mu.Lock()
+	err = decoder.Decode(&Config)
+	Config_mu.Unlock()
 	if err != nil {
 		fmt.Println("error config: ", err)
 	}
@@ -68,9 +68,9 @@ func watchConfig() {
 		}
 		defer file.Close()
 		decoder := yaml.NewDecoder(file)
-		config_mu.Lock()
-		err = decoder.Decode(&config)
-		config_mu.Unlock()
+		Config_mu.Lock()
+		err = decoder.Decode(&Config)
+		Config_mu.Unlock()
 		if err != nil {
 			log.Println("error config: ", err)
 		}
@@ -103,14 +103,14 @@ func handleMessage(message []byte) {
 		return
 	}
 	if friendmsg.MessageType == "private" {
-		config_mu.RLock()
-		defer config_mu.RUnlock()
-		for _, uin := range config.Friend.Exclude {
+		Config_mu.RLock()
+		defer Config_mu.RUnlock()
+		for _, uin := range Config.Friend.Exclude {
 			if uin == strconv.Itoa(friendmsg.UserId) {
 				return
 			}
 		}
-		for _, uin := range config.Friend.Include {
+		for _, uin := range Config.Friend.Include {
 			if uin == "all" || uin == strconv.Itoa(friendmsg.UserId) {
 				onPrivateMessage(friendmsg)
 				return
@@ -118,20 +118,20 @@ func handleMessage(message []byte) {
 		}
 
 	} else if friendmsg.MessageType == "group" {
-		config_mu.RLock()
-		defer config_mu.RUnlock()
+		Config_mu.RLock()
+		defer Config_mu.RUnlock()
 		groupmsg := model.GroupMessage{}
 		err := json.Unmarshal(message, &groupmsg)
 		if err != nil {
 			log.Println("error:", err)
 			return
 		}
-		for _, uin := range config.Group.Exclude {
+		for _, uin := range Config.Group.Exclude {
 			if uin == strconv.Itoa(groupmsg.GroupId) {
 				return
 			}
 		}
-		for _, uin := range config.Group.Include {
+		for _, uin := range Config.Group.Include {
 			if uin == "all" || uin == strconv.Itoa(groupmsg.GroupId) {
 				onGroupMessage(groupmsg)
 				return

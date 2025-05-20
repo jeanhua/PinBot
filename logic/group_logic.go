@@ -32,11 +32,11 @@ func onGroupMessage(msg model.GroupMessage) {
 			}
 		}
 	}
-	config_mu.RLock()
-	if config.Debug {
+	Config_mu.RLock()
+	if Config.Debug {
 		log.Println(text)
 	}
-	config_mu.RUnlock()
+	Config_mu.RUnlock()
 
 	trimText := strings.TrimSpace(text)
 
@@ -108,7 +108,7 @@ func onGroupMessage(msg model.GroupMessage) {
 		}
 		ready = false
 		llmLock.Unlock()
-		reply, err := zhipu.RequestReply(uint(groupId), text)
+		reply, err := zhipu.RequestReply(uint(groupId), text, Config.AI_Prompt)
 		if err != nil {
 			log.Println("zhipu error: ", err)
 			chain := messageChain.Group(groupId)

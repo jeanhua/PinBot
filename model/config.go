@@ -12,4 +12,5 @@ type Config struct {
 		Include []string `yaml:"include"`
 		Exclude []string `yaml:"exclude"`
 	} `yaml:"friend"`
+	AI_Prompt string `yaml:"ai_prompt"`
 }

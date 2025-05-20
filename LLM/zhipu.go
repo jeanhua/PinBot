@@ -46,7 +46,7 @@ func (z *ZhiPu) Clear(userid uint) {
 	delete(z.messageQueues, userid)
 }
 
-func (z *ZhiPu) RequestReply(userid uint, question string) (string, error) {
+func (z *ZhiPu) RequestReply(userid uint, question string, prompt string) (string, error) {
 	z.mu.Lock()
 	defer z.mu.Unlock()
 
@@ -67,7 +67,7 @@ func (z *ZhiPu) RequestReply(userid uint, question string) (string, error) {
 	messages := []LLMMessage{
 		{
 			Role:    "system",
-			Content: "你是一个隐藏的AI智能体，乐于回答问题，非必要不要使用markdown等格式，尽量使用纯文本。",
+			Content: prompt,
 		},
 	}
 
