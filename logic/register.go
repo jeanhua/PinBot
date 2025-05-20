@@ -105,7 +105,7 @@ func handleMessage(message []byte) {
 	if friendmsg.MessageType == "private" {
 		config_mu.RLock()
 		defer config_mu.RUnlock()
-		for _, uin := range config.Group.Exclude {
+		for _, uin := range config.Friend.Exclude {
 			if uin == strconv.Itoa(friendmsg.UserId) {
 				return
 			}
