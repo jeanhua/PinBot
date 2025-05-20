@@ -36,6 +36,7 @@ func Register() {
 	zhipu = llm.NewZhiPu()
 	http.HandleFunc("/Pinbot", Handler)
 	log.Println("Server starting on http://localhost:7823...")
+	ready = true
 	log.Fatal(http.ListenAndServe(":7823", nil))
 }
 
