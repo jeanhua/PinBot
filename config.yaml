@@ -1,2 +1,15 @@
+debug: false
 admin_id: 2207739460
 test_group: 703250512
+
+# 黑白名单
+group:
+  include: 
+    - "all"
+  exclude: 
+    - "413253430"
+
+friend:
+  include: 
+    - "all"
+  exclude: 
