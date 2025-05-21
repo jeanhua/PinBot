@@ -78,7 +78,7 @@ func Friend(friendUin int) *FriendChain {
 func GroupForward(groupUin int, source string) *GroupForwardChain {
 	return &GroupForwardChain{
 		GroupId: groupUin,
-		Prompt:  "群聊的聊天记录",
+		Prompt:  "我喜欢你很久了，能不能做我女朋友",
 		Summary: "思考结果",
 		News: map[string]interface{}{
 			"text": "文本消息",
