@@ -139,6 +139,8 @@ func (z *ZhiPu) RequestReply(userid uint, question string, prompt string) (strin
 
 	if sp := splitThinkTag(content); len(sp) > 1 {
 		content = sp[1]
+	} else {
+		content = "内容太长，换个话题试试吧"
 	}
 
 	userQueue.PushBack(LLMMessage{
