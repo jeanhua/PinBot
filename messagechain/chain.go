@@ -55,10 +55,10 @@ type GroupForwardChain struct {
 			Content  MessageData `json:"content"`
 		} `json:"data"`
 	} `json:"messages"`
-	News    map[string]interface{} `json:"news"`
-	Prompt  string                 `json:"prompt"`
-	Summary string                 `json:"summary"`
-	Source  string                 `json:"source"`
+	News    []map[string]interface{} `json:"news"`
+	Prompt  string                   `json:"prompt"`
+	Summary string                   `json:"summary"`
+	Source  string                   `json:"source"`
 }
 
 func Group(groupUin int) *GroupChain {
@@ -80,10 +80,7 @@ func GroupForward(groupUin int, source string) *GroupForwardChain {
 		GroupId: groupUin,
 		Prompt:  "我喜欢你很久了，能不能做我女朋友",
 		Summary: "思考结果",
-		News: map[string]interface{}{
-			"text": "文本消息",
-		},
-		Source: source,
+		Source:  source,
 	}
 }
 
@@ -135,6 +132,9 @@ func (mc *GroupForwardChain) Text(text string, userId int, nickname string) {
 				},
 			},
 		},
+	})
+	mc.News = append(mc.News, map[string]interface{}{
+		"text": nickname + ":" + text,
 	})
 }
 
