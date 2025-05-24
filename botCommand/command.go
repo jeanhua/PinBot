@@ -75,7 +75,7 @@ func DealGroupCommand(com string, msg *model.GroupMessage) bool {
 			messageChain.SendMessage(chain)
 			return true
 		}
-		text := "\n"
+		text := "实时热帖：\n"
 		for i, v := range resp.Data.List {
 			text += fmt.Sprintf("[%d]%s\n", i+1, v.Title)
 		}
