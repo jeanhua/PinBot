@@ -75,9 +75,9 @@ func DealGroupCommand(com string, msg *model.GroupMessage) bool {
 			messageChain.SendMessage(chain)
 			return true
 		}
-		text := ""
+		text := "\n"
 		for i, v := range resp.Data.List {
-			text += fmt.Sprintf("[%d]%s\n", i, v.Title)
+			text += fmt.Sprintf("[%d]%s\n", i+1, v.Title)
 		}
 		text = strings.TrimSpace(text)
 		chain.Text(text)
