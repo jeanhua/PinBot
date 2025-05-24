@@ -12,6 +12,7 @@ import (
 	"time"
 
 	llm "github.com/jeanhua/PinBot/LLM"
+	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/model"
 	"github.com/jeanhua/PinBot/utils"
 	"gopkg.in/yaml.v3"
@@ -24,10 +25,6 @@ var zhipu *llm.ZhiPu
 var llmLock sync.RWMutex
 var ready bool
 
-// 配置
-var Config_mu sync.RWMutex
-var Config model.Config
-
 func Register() {
 	file, err := os.Open("./config.yaml")
 	if err != nil {
@@ -35,9 +32,9 @@ func Register() {
 	}
 	defer file.Close()
 	decoder := yaml.NewDecoder(file)
-	Config_mu.Lock()
-	err = decoder.Decode(&Config)
-	Config_mu.Unlock()
+	config.Config_mu.Lock()
+	err = decoder.Decode(&config.Config)
+	config.Config_mu.Unlock()
 	if err != nil {
 		fmt.Println("error config: ", err)
 	}
@@ -68,9 +65,9 @@ func watchConfig() {
 		}
 		defer file.Close()
 		decoder := yaml.NewDecoder(file)
-		Config_mu.Lock()
-		err = decoder.Decode(&Config)
-		Config_mu.Unlock()
+		config.Config_mu.Lock()
+		err = decoder.Decode(&config.Config)
+		config.Config_mu.Unlock()
 		if err != nil {
 			log.Println("error config: ", err)
 		}
@@ -103,14 +100,14 @@ func handleMessage(message []byte) {
 		return
 	}
 	if friendmsg.MessageType == "private" {
-		Config_mu.RLock()
-		defer Config_mu.RUnlock()
-		for _, uin := range Config.Friend.Exclude {
+		config.Config_mu.RLock()
+		defer config.Config_mu.RUnlock()
+		for _, uin := range config.Config.Friend.Exclude {
 			if uin == strconv.Itoa(friendmsg.UserId) {
 				return
 			}
 		}
-		for _, uin := range Config.Friend.Include {
+		for _, uin := range config.Config.Friend.Include {
 			if uin == "all" || uin == strconv.Itoa(friendmsg.UserId) {
 				onPrivateMessage(friendmsg)
 				return
@@ -118,20 +115,20 @@ func handleMessage(message []byte) {
 		}
 
 	} else if friendmsg.MessageType == "group" {
-		Config_mu.RLock()
-		defer Config_mu.RUnlock()
+		config.Config_mu.RLock()
+		defer config.Config_mu.RUnlock()
 		groupmsg := model.GroupMessage{}
 		err := json.Unmarshal(message, &groupmsg)
 		if err != nil {
 			log.Println("error:", err)
 			return
 		}
-		for _, uin := range Config.Group.Exclude {
+		for _, uin := range config.Config.Group.Exclude {
 			if uin == strconv.Itoa(groupmsg.GroupId) {
 				return
 			}
 		}
-		for _, uin := range Config.Group.Include {
+		for _, uin := range config.Config.Group.Include {
 			if uin == "all" || uin == strconv.Itoa(groupmsg.GroupId) {
 				onGroupMessage(groupmsg)
 				return

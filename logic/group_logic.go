@@ -8,6 +8,7 @@ import (
 	"time"
 
 	botcommand "github.com/jeanhua/PinBot/botCommand"
+	"github.com/jeanhua/PinBot/config"
 	messageChain "github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
 )
@@ -32,11 +33,11 @@ func onGroupMessage(msg model.GroupMessage) {
 			}
 		}
 	}
-	Config_mu.RLock()
-	if Config.Debug {
+	config.Config_mu.RLock()
+	if config.Config.Debug {
 		log.Println(text)
 	}
-	Config_mu.RUnlock()
+	config.Config_mu.RUnlock()
 
 	trimText := strings.TrimSpace(text)
 
@@ -109,9 +110,9 @@ func onGroupMessage(msg model.GroupMessage) {
 		ready = false
 		llmLock.Unlock()
 
-		Config_mu.RLock()
-		reply, err := zhipu.RequestReply(uint(groupId), text, Config.AI_Prompt)
-		Config_mu.RUnlock()
+		config.Config_mu.RLock()
+		reply, err := zhipu.RequestReply(uint(groupId), text, config.Config.AI_Prompt)
+		config.Config_mu.RUnlock()
 
 		if err != nil {
 			log.Println("zhipu error: ", err)

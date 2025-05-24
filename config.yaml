@@ -16,3 +16,6 @@ friend:
 
 # AI系统预设提示词
 ai_prompt: "你是一个AI智能体，你的名字叫江颦，你乐于回答问题，非必要不要使用markdown等格式，尽量使用纯文本。"
+
+# 赞噢校园集市token
+zanao_token: # 集市token
