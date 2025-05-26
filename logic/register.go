@@ -32,9 +32,9 @@ func Register() {
 	}
 	defer file.Close()
 	decoder := yaml.NewDecoder(file)
-	config.Config_mu.Lock()
-	err = decoder.Decode(&config.Config)
-	config.Config_mu.Unlock()
+	config.ConfigInstance_mu.Lock()
+	err = decoder.Decode(&config.ConfigInstance)
+	config.ConfigInstance_mu.Unlock()
 	if err != nil {
 		fmt.Println("error config: ", err)
 	}
@@ -65,9 +65,9 @@ func watchConfig() {
 		}
 		defer file.Close()
 		decoder := yaml.NewDecoder(file)
-		config.Config_mu.Lock()
-		err = decoder.Decode(&config.Config)
-		config.Config_mu.Unlock()
+		config.ConfigInstance_mu.Lock()
+		err = decoder.Decode(&config.ConfigInstance)
+		config.ConfigInstance_mu.Unlock()
 		if err != nil {
 			log.Println("error config: ", err)
 		}
@@ -100,14 +100,14 @@ func handleMessage(message []byte) {
 		return
 	}
 	if friendmsg.MessageType == "private" {
-		config.Config_mu.RLock()
-		defer config.Config_mu.RUnlock()
-		for _, uin := range config.Config.Friend.Exclude {
+		config.ConfigInstance_mu.RLock()
+		defer config.ConfigInstance_mu.RUnlock()
+		for _, uin := range config.ConfigInstance.Friend.Exclude {
 			if uin == strconv.Itoa(friendmsg.UserId) {
 				return
 			}
 		}
-		for _, uin := range config.Config.Friend.Include {
+		for _, uin := range config.ConfigInstance.Friend.Include {
 			if uin == "all" || uin == strconv.Itoa(friendmsg.UserId) {
 				onPrivateMessage(friendmsg)
 				return
@@ -115,20 +115,20 @@ func handleMessage(message []byte) {
 		}
 
 	} else if friendmsg.MessageType == "group" {
-		config.Config_mu.RLock()
-		defer config.Config_mu.RUnlock()
+		config.ConfigInstance_mu.RLock()
+		defer config.ConfigInstance_mu.RUnlock()
 		groupmsg := model.GroupMessage{}
 		err := json.Unmarshal(message, &groupmsg)
 		if err != nil {
 			log.Println("error:", err)
 			return
 		}
-		for _, uin := range config.Config.Group.Exclude {
+		for _, uin := range config.ConfigInstance.Group.Exclude {
 			if uin == strconv.Itoa(groupmsg.GroupId) {
 				return
 			}
 		}
-		for _, uin := range config.Config.Group.Include {
+		for _, uin := range config.ConfigInstance.Group.Include {
 			if uin == "all" || uin == strconv.Itoa(groupmsg.GroupId) {
 				onGroupMessage(groupmsg)
 				return

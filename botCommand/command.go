@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jeanhua/PinBot/config"
 	messageChain "github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
 	"github.com/jeanhua/PinBot/utils"
@@ -16,15 +17,15 @@ var (
 )
 
 func DealGroupCommand(com string, msg *model.GroupMessage) bool {
+	com = "/" + strings.TrimLeft(com, "/")
 	switch com {
 	case "/help", "/帮助":
 		chain := messageChain.Group(msg.GroupId)
 		chain.Reply(msg.MessageId)
 		chain.Mention(msg.UserId)
-		text := " @我发送 清除记录 ->清除聊天记录\n"
-		text += "@我发送 /enable(disable) AI语音 ->开关AI语音\n"
-		text += "@我发送 /zanao post(hot) -> 获取集市最新(热)帖\n"
-		chain.Text(text)
+		config.ConfigInstance_mu.RLock()
+		chain.Text(config.ConfigInstance.HelpWords.Group)
+		config.ConfigInstance_mu.RUnlock()
 		messageChain.SendMessage(chain)
 		return true
 	case "/enable AI语音":
@@ -89,10 +90,13 @@ func DealGroupCommand(com string, msg *model.GroupMessage) bool {
 }
 
 func DealFriendCommand(com string, msg *model.FriendMessage) bool {
+	com = "/" + strings.TrimLeft(com, "/")
 	switch com {
 	case "/help", "/帮助":
 		chain := messageChain.Friend(msg.UserId)
-		chain.Text(" @我发送 清除记录 可以清除聊天记录哦")
+		config.ConfigInstance_mu.RLock()
+		chain.Text(config.ConfigInstance.HelpWords.Friend)
+		config.ConfigInstance_mu.RUnlock()
 		messageChain.SendMessage(chain)
 		return true
 	default:

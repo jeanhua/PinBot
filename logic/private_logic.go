@@ -18,11 +18,11 @@ func onPrivateMessage(msg model.FriendMessage) {
 			text += t.Data["text"].(string)
 		}
 	}
-	config.Config_mu.RLock()
-	if config.Config.Debug {
+	config.ConfigInstance_mu.RLock()
+	if config.ConfigInstance.Debug {
 		log.Println(text)
 	}
-	config.Config_mu.RUnlock()
+	config.ConfigInstance_mu.RUnlock()
 	trimText := strings.TrimSpace(text)
 	uid := msg.UserId
 	if strings.TrimSpace(text) == "清除记录" {
@@ -63,9 +63,9 @@ func onPrivateMessage(msg model.FriendMessage) {
 		ready = false
 		llmLock.Unlock()
 
-		config.Config_mu.RLock()
-		reply, err := zhipu.RequestReply(uint(uid), text, config.Config.AI_Prompt)
-		config.Config_mu.RUnlock()
+		config.ConfigInstance_mu.RLock()
+		reply, err := zhipu.RequestReply(uint(uid), text, config.ConfigInstance.AI_Prompt)
+		config.ConfigInstance_mu.RUnlock()
 
 		if err != nil {
 			log.Println("zhipu error: ", err)

@@ -86,15 +86,15 @@ func getResponse(token, url string) (*SimpleResponse, error) {
 }
 
 func (Zanao) GetNewest() (*SimpleResponse, error) {
-	config.Config_mu.RLock()
-	token := config.Config.ZanaoToken
-	config.Config_mu.RUnlock()
+	config.ConfigInstance_mu.RLock()
+	token := config.ConfigInstance.ZanaoToken
+	config.ConfigInstance_mu.RUnlock()
 	return getResponse(token, "https://api.x.zanao.com/thread/v2/list?from_time=0&hot=1&with_comment=true&with_reply=true")
 }
 
 func (Zanao) GetHot() (*SimpleResponse, error) {
-	config.Config_mu.RLock()
-	token := config.Config.ZanaoToken
-	config.Config_mu.RUnlock()
+	config.ConfigInstance_mu.RLock()
+	token := config.ConfigInstance.ZanaoToken
+	config.ConfigInstance_mu.RUnlock()
 	return getResponse(token, "https://api.x.zanao.com/thread/hot?count=10&type=3&with_comment=true&with_reply=true")
 }

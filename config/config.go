@@ -16,8 +16,12 @@ type ConfigModel struct {
 		Exclude []string `yaml:"exclude"`
 	} `yaml:"friend"`
 	AI_Prompt string `yaml:"ai_prompt"`
+	HelpWords struct {
+		Group  string `yaml:"group"`
+		Friend string `yaml:"friend"`
+	} `yaml:"help_words"`
 }
 
 // 配置
-var Config_mu sync.RWMutex
-var Config ConfigModel
+var ConfigInstance_mu sync.RWMutex
+var ConfigInstance ConfigModel
