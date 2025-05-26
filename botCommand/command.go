@@ -170,7 +170,7 @@ func DealGroupCommand(com string, msg *model.GroupMessage) bool {
 			return true
 		}
 		groupForward := messageChain.GroupForward(msg.GroupId, "课程详情")
-		groupForward.Text(fmt.Sprintf("课程名:%s\n任课教师:%s\n课程号:%d\n课序号:%s\n课程学分:%f\n考察类型:%s", result.Data.CourseName, result.Data.TeachersName, result.Data.Kch, result.Data.Kxh, result.Data.Credit, result.Data.ExamTypeName), msg.SelfId, "江颦")
+		groupForward.Text(fmt.Sprintf("课程名:%s\n任课教师:%s\n课程号:%d\n课序号:%s\n课程学分:%.1f\n考察类型:%s", result.Data.CourseName, result.Data.TeachersName, result.Data.Kch, result.Data.Kxh, result.Data.Credit, result.Data.ExamTypeName), msg.SelfId, "江颦")
 		groupForward.Text(fmt.Sprintf("统计总表:\n统计人数:%d\n平均分:%.2f\n最高分:%.2f\n最低分:%.2f\n90~100分:%d人\n80~89分:%d人\n70~79分:%d人\n60~69分:%d人\n0~59分:%d人", result.Data.Count, result.Data.Average, result.Data.Max, result.Data.Min, result.Data.A_levelCount, result.Data.B_levelCount, result.Data.C_levelCount, result.Data.D_levelCount, result.Data.E_levelCount), msg.SelfId, "江颦")
 		for _, v := range result.Data.History {
 			groupForward.Text(fmt.Sprintf("考试时间:%d:\n统计人数:%d\n平均分:%.2f\n最高分:%.2f\n最低分:%.2f\n90~100分:%d人\n80~89分:%d人\n70~79分:%d人\n60~69分:%d人\n0~59分:%d人", v.ExamTime, v.Count, v.Average, v.Max, v.Min, v.A_levelCount, v.B_levelCount, v.C_levelCount, v.D_levelCount, v.E_levelCount), msg.SelfId, "江颦")
