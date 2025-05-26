@@ -130,11 +130,9 @@ func DealGroupCommand(com string, msg *model.GroupMessage) bool {
 			responseStr.WriteString(fmt.Sprintf("[%d]%s %d-%s %s %s\n", v.Kid, v.CourseName, v.Kch, v.Kxh, v.ExamTypeName, v.TeachersName))
 		}
 		responseStr.WriteString("\n@我发送 /课程详情 课程id 可查看课程详情，比如 /课程详情 12154")
-		chain := messageChain.Group(msg.GroupId)
-		chain.Reply(msg.MessageId)
-		chain.Mention(msg.UserId)
-		chain.Text(responseStr.String())
-		messageChain.SendMessage(chain)
+		groupForward := messageChain.GroupForward(msg.GroupId, "查询结果")
+		groupForward.Text(responseStr.String(), msg.SelfId, "江颦")
+		groupForward.Send()
 		return true
 	}
 
