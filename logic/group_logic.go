@@ -1,7 +1,7 @@
 package logic
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -11,6 +11,7 @@ import (
 	"github.com/jeanhua/PinBot/config"
 	messageChain "github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
+	"github.com/jeanhua/PinBot/utils"
 )
 
 type repeaatTurple struct {
@@ -33,11 +34,7 @@ func onGroupMessage(msg model.GroupMessage) {
 			}
 		}
 	}
-	config.ConfigInstance_mu.RLock()
-	if config.ConfigInstance.Debug {
-		log.Println(text)
-	}
-	config.ConfigInstance_mu.RUnlock()
+	utils.LogErr(fmt.Sprintf("[%s]:%s", msg.Sender.Nickname, text))
 
 	trimText := strings.TrimSpace(text)
 
@@ -115,7 +112,7 @@ func onGroupMessage(msg model.GroupMessage) {
 		config.ConfigInstance_mu.RUnlock()
 
 		if err != nil {
-			log.Println("zhipu error: ", err)
+			utils.LogErr(err.Error())
 			chain := messageChain.Group(groupId)
 			chain.Reply(messageId)
 			chain.Mention(int(uid))

@@ -3,7 +3,7 @@ package config
 import "sync"
 
 type ConfigModel struct {
-	Debug      bool   `yaml:"Debug"`
+	Debug      bool   `yaml:"debug"`
 	Admin_id   int    `yaml:"admin_id"`
 	Test_group int    `yaml:"test_group"`
 	ZanaoToken string `yaml:"zanao_token"`

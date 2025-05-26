@@ -1,7 +1,7 @@
 package logic
 
 import (
-	"log"
+	"fmt"
 	"strings"
 	"time"
 
@@ -9,6 +9,7 @@ import (
 	"github.com/jeanhua/PinBot/config"
 	messageChain "github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
+	"github.com/jeanhua/PinBot/utils"
 )
 
 func onPrivateMessage(msg model.FriendMessage) {
@@ -18,11 +19,7 @@ func onPrivateMessage(msg model.FriendMessage) {
 			text += t.Data["text"].(string)
 		}
 	}
-	config.ConfigInstance_mu.RLock()
-	if config.ConfigInstance.Debug {
-		log.Println(text)
-	}
-	config.ConfigInstance_mu.RUnlock()
+	utils.LogErr(fmt.Sprintf("[%s]:%s", msg.Sender.Nickname, text))
 	trimText := strings.TrimSpace(text)
 	uid := msg.UserId
 	if strings.TrimSpace(text) == "清除记录" {
@@ -68,7 +65,7 @@ func onPrivateMessage(msg model.FriendMessage) {
 		config.ConfigInstance_mu.RUnlock()
 
 		if err != nil {
-			log.Println("zhipu error: ", err)
+			utils.LogErr(err.Error())
 			chain := messageChain.Friend(uid)
 			chain.Text("抱歉，我遇到了一些问题，请稍后再试。")
 			messageChain.SendMessage(chain)
