@@ -2,7 +2,7 @@ debug: false
 admin_id: 2207739460
 test_group: 703250512
 
-# 黑白名单
+# 黑白名单，优先级 exclude > include
 group:
   include: 
     - "all"
@@ -18,13 +18,15 @@ friend:
 ai_prompt: "你是一个AI智能体，你的名字叫江颦，你乐于回答问题，非必要不要使用markdown等格式，尽量使用纯文本。"
 
 # 赞噢校园集市token
-zanao_token: # 集市token
+zanao_token: # 集市token 抓包请求头中的 X-Sc-Od
 
 # 帮助：
 help_words:
-  group: |
+  group: | 
     @我发送 清除记录 -> 清除聊天记录
     @我发送 /enable(disable) AI语音 -> 开关AI语音
     @我发送 /zanao post(hot) -> 获取集市最新(热)帖
+    @我发送 /查课 关键词 -> 查询课程
+    @我发送 /课程详情 ID -> 查询课程详情
   friend: |
     @我发送 清除记录 可以清除聊天记录哦

@@ -102,7 +102,7 @@ func DealGroupCommand(com string, msg *model.GroupMessage) bool {
 		page := 1
 		if len(param) == 3 {
 			tp, err := strconv.Atoi(strings.TrimLeft(param[2], "page"))
-			if err != nil {
+			if err != nil || !strings.HasPrefix(param[2], "page") {
 				chain := messageChain.Group(msg.GroupId)
 				chain.Reply(msg.MessageId)
 				chain.Mention(msg.UserId)
