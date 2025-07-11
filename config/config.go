@@ -1,12 +1,11 @@
 package config
 
-import "sync"
-
 type ConfigModel struct {
 	Debug      bool   `yaml:"debug"`
 	Admin_id   int    `yaml:"admin_id"`
 	Test_group int    `yaml:"test_group"`
 	ZanaoToken string `yaml:"zanao_token"`
+	ZhipuToken string `yaml:"zhipu_token"`
 	Group      struct {
 		Include []string `yaml:"include"`
 		Exclude []string `yaml:"exclude"`
@@ -23,5 +22,4 @@ type ConfigModel struct {
 }
 
 // 配置
-var ConfigInstance_mu sync.RWMutex
 var ConfigInstance ConfigModel

@@ -9,13 +9,21 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jeanhua/PinBot/config"
 )
 
-type Zanao struct{}
+type Zanao struct {
+	token string
+}
+
+func (z *Zanao) NewZanao(token string) {
+	z.token = token
+}
 
 func getM(length int) string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -26,75 +34,296 @@ func getM(length int) string {
 	return string(result)
 }
 
-func getH() int64 {
-	return time.Now().Unix()
-}
-
 func md5Hash(input string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(input))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func getB(input string) string {
-	return md5Hash(input)
-}
-
-func getResult(userToken, schoolalias string) map[string]string {
+func getHeaders(userToken, schoolalias string) map[string]string {
 	m := getM(20)
-	td := getH()
+	td := time.Now().Unix()
 	signString := fmt.Sprintf("%s_%s_%d_1b6d2514354bc407afdd935f45521a8c", schoolalias, m, td)
-	b := getB(signString)
 	return map[string]string{
-		"X-Sc-Ah":    b,
-		"X-Sc-Alias": schoolalias,
-		"X-Sc-Nd":    m,
-		"X-Sc-Od":    userToken,
-		"X-Sc-Td":    strconv.FormatInt(td, 10),
+		"X-Sc-Version":  "3.4.4",
+		"X-Sc-Nwt":      "wifi",
+		"X-Sc-Wf":       "",
+		"X-Sc-Nd":       m,
+		"X-Sc-Cloud":    "0",
+		"X-Sc-Platform": "windows",
+		"X-Sc-Appid":    "wx3921ddb0258ff14f",
+		"X-Sc-Alias":    schoolalias,
+		"X-Sc-Od":       userToken,
+		"Content-Type":  "application/x-www-form-urlencoded",
+		"X-Sc-Ah":       md5Hash(signString),
+		"xweb_xhr":      "1",
+		"User-Agent":    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090c33)XWEB/14185",
+		"X-Sc-Td":       strconv.FormatInt(td, 10),
+		"Accept":        "*/*",
 	}
 }
 
-type SimpleResponse struct {
+func TrimSpaceAndBreakLine(s string) string {
+	return strings.ReplaceAll(strings.TrimSpace(s), "\n", "")
+}
+
+const contentHeader = "获取到如下内容：\n"
+
+func (z *Zanao) GetNewest() string {
+	request, err := http.NewRequest(http.MethodPost, "https://api.x.zanao.com/thread/v2/list", nil)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	headers := getHeaders(config.ConfigInstance.ZanaoToken, "scu")
+	for k, v := range headers {
+		request.Header.Set(k, v)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	defer resp.Body.Close()
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	var posts PostsList
+	err = json.Unmarshal(respBytes, &posts)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	var back strings.Builder
+	back.WriteString(contentHeader)
+	for _, post := range posts.Data.List {
+		back.WriteString("帖子ID：" + post.ID + "\n")
+		back.WriteString("昵称: " + TrimSpaceAndBreakLine(post.Nickname) + "\n")
+		back.WriteString("标题: " + TrimSpaceAndBreakLine(post.Title) + "\n")
+		back.WriteString("内容: " + TrimSpaceAndBreakLine(post.Content) + "\n")
+		back.WriteString("浏览量: " + strconv.Itoa(post.ViewCount) + "\n")
+		back.WriteString("点赞数: " + post.LikeCount + "\n\n")
+	}
+	return back.String()
+}
+
+func (z *Zanao) GetHot() string {
+	// https://api.x.zanao.com/thread/hot?count=10&type=3
+	request, err := http.NewRequest(http.MethodPost, "https://api.x.zanao.com/thread/hot?count=10&type=3", nil)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	headers := getHeaders(config.ConfigInstance.ZanaoToken, "scu")
+	for k, v := range headers {
+		request.Header.Set(k, v)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	defer resp.Body.Close()
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	var posts HotList
+	err = json.Unmarshal(respBytes, &posts)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	var back strings.Builder
+	back.WriteString(contentHeader)
+	for _, post := range posts.Data.List {
+		back.WriteString("帖子ID：" + post.ID + "\n")
+		back.WriteString("昵称: " + TrimSpaceAndBreakLine(post.Nickname) + "\n")
+		back.WriteString("标题: " + TrimSpaceAndBreakLine(post.Title) + "\n")
+		back.WriteString("内容: " + TrimSpaceAndBreakLine(post.Content) + "\n")
+		back.WriteString("浏览量: " + strconv.Itoa(post.ViewCount) + "\n\n")
+	}
+	return back.String()
+}
+
+func (z *Zanao) GetDetail(id string) string {
+	request, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://api.x.zanao.com/thread/info?id=%s", id), nil)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	headers := getHeaders(config.ConfigInstance.ZanaoToken, "scu")
+	for k, v := range headers {
+		request.Header.Set(k, v)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	defer resp.Body.Close()
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	var post SinglePost
+	err = json.Unmarshal(respBytes, &post)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	var back strings.Builder
+	back.WriteString(contentHeader)
+	back.WriteString("昵称: " + TrimSpaceAndBreakLine(post.Data.Detail.Nickname) + "\n")
+	back.WriteString("标题: " + TrimSpaceAndBreakLine(post.Data.Detail.Title) + "\n")
+	back.WriteString("内容: " + TrimSpaceAndBreakLine(post.Data.Detail.Content) + "\n")
+	back.WriteString("浏览量: " + strconv.Itoa(post.Data.Detail.ViewCount) + "\n")
+	back.WriteString("点赞数: " + post.Data.Detail.LikeCount + "\n\n")
+	return back.String()
+}
+
+func (z *Zanao) Search(keyWords string) string {
+	link := "https://api.x.zanao.com/thread/v2/search?wd=" + url.QueryEscape(keyWords) + "&cur_page=1&cate_id=10"
+	request, err := http.NewRequest(http.MethodPost, link, nil)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	headers := getHeaders(config.ConfigInstance.ZanaoToken, "scu")
+	for k, v := range headers {
+		request.Header.Set(k, v)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	defer resp.Body.Close()
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	var posts PostsList
+	err = json.Unmarshal(respBytes, &posts)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	var back strings.Builder
+	back.WriteString(contentHeader)
+	for _, post := range posts.Data.List {
+		back.WriteString("帖子ID：" + post.ID + "\n")
+		back.WriteString("昵称: " + TrimSpaceAndBreakLine(post.Nickname) + "\n")
+		back.WriteString("标题: " + TrimSpaceAndBreakLine(post.Title) + "\n")
+		back.WriteString("内容: " + TrimSpaceAndBreakLine(post.Content) + "\n")
+		back.WriteString("浏览量: " + strconv.Itoa(post.ViewCount) + "\n")
+		back.WriteString("点赞数: " + post.LikeCount + "\n\n")
+	}
+	return back.String()
+}
+
+func (z *Zanao) GetComments(id string) string {
+	request, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://api.x.zanao.com/comment/list?id=%s", id), nil)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	headers := getHeaders(config.ConfigInstance.ZanaoToken, "scu")
+	for k, v := range headers {
+		request.Header.Set(k, v)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	defer resp.Body.Close()
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	var comments Comments
+	err = json.Unmarshal(respBytes, &comments)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	var back strings.Builder
+	back.WriteString(contentHeader)
+	if len(comments.Data.List) > 10 {
+		comments.Data.List = comments.Data.List[:10]
+	}
+	for _, c := range comments.Data.List {
+		back.WriteString("评论者: " + c.Nickname + "\n")
+		back.WriteString("内容: " + c.Content + "\n")
+		back.WriteString("点赞数: " + c.LikeNum + "\n")
+		back.WriteString("回复列表: \n")
+		for _, reply := range c.ReplyList {
+			back.WriteString(fmt.Sprintf("\t%s: %s\n", reply.Nickname, TrimSpaceAndBreakLine(reply.Content)))
+		}
+		back.WriteString("\n")
+	}
+	return back.String()
+}
+
+type PostsList struct {
 	Data struct {
 		List []struct {
-			Title   string `json:"title"`
-			Content string `json:"content"`
+			ID        string `json:"thread_id"`  // 帖子ID
+			Nickname  string `json:"nickname"`   // 昵称
+			Title     string `json:"title"`      // 标题
+			Content   string `json:"content"`    // 内容
+			ViewCount int    `json:"view_count"` // 浏览量
+			LikeCount string `json:"l_count"`    // 点赞数
 		} `json:"list"`
 	} `json:"data"`
 }
 
-func getResponse(token, url string) (*SimpleResponse, error) {
-	header := getResult(token, "scu")
-	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-	req, _ := http.NewRequest(http.MethodGet, url+"&from_time="+timestamp, nil)
-	for k, v := range header {
-		req.Header.Add(k, v)
-	}
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Println(err)
-	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	var jsonResp SimpleResponse
-	err = json.Unmarshal(body, &jsonResp)
-	if err != nil {
-		return nil, err
-	}
-	return &jsonResp, nil
+type SinglePost struct {
+	Data struct {
+		Detail struct {
+			Nickname  string `json:"nickname"`   // 昵称
+			Title     string `json:"title"`      // 标题
+			Content   string `json:"content"`    // 内容
+			ViewCount int    `json:"view_count"` // 浏览量
+			LikeCount string `json:"like_num"`   // 点赞数
+		} `json:"detail"`
+	} `json:"data"`
 }
 
-func (Zanao) GetNewest() (*SimpleResponse, error) {
-	config.ConfigInstance_mu.RLock()
-	token := config.ConfigInstance.ZanaoToken
-	config.ConfigInstance_mu.RUnlock()
-	return getResponse(token, "https://api.x.zanao.com/thread/v2/list?from_time=0&hot=1&with_comment=true&with_reply=true")
+type HotList struct {
+	Data struct {
+		List []struct {
+			ID        string `json:"thread_id"`  // 帖子ID
+			Nickname  string `json:"nickname"`   // 昵称
+			Title     string `json:"title"`      // 标题
+			Content   string `json:"content"`    // 内容
+			ViewCount int    `json:"view_count"` // 浏览量
+		} `json:"list"`
+	} `json:"data"`
 }
 
-func (Zanao) GetHot() (*SimpleResponse, error) {
-	config.ConfigInstance_mu.RLock()
-	token := config.ConfigInstance.ZanaoToken
-	config.ConfigInstance_mu.RUnlock()
-	return getResponse(token, "https://api.x.zanao.com/thread/hot?count=10&type=3&with_comment=true&with_reply=true")
+type Comments struct {
+	Data struct {
+		List []struct {
+			Nickname  string `json:"nickname"`
+			Content   string `json:"content"`
+			LikeNum   string `json:"like_num"`
+			ReplyList []struct {
+				Nickname string `json:"nickname"`
+				Content  string `json:"content"`
+			} `json:"reply_list"`
+		} `json:"list"`
+	} `json:"data"`
 }

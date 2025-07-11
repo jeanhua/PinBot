@@ -9,21 +9,18 @@ import (
 	"os"
 	"strconv"
 	"sync"
-	"time"
 
-	llm "github.com/jeanhua/PinBot/LLM"
+	"github.com/jeanhua/PinBot/ai/aicommunicate"
 	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/model"
-	"github.com/jeanhua/PinBot/utils"
 	"gopkg.in/yaml.v3"
 )
 
 // 智谱AI
-var zhipu *llm.ZhiPu
+var zhipuMap map[uint]*aicommunicate.ZhipuAIBot
 
 // 大模型速率限制
-var llmLock sync.RWMutex
-var ready bool
+var llmLock sync.Mutex
 
 func Register() {
 	file, err := os.Open("./config.yaml")
@@ -32,46 +29,14 @@ func Register() {
 	}
 	defer file.Close()
 	decoder := yaml.NewDecoder(file)
-	config.ConfigInstance_mu.Lock()
 	err = decoder.Decode(&config.ConfigInstance)
-	config.ConfigInstance_mu.Unlock()
 	if err != nil {
 		fmt.Println("error config: ", err)
 	}
-	go watchConfig()
-	zhipu = llm.NewZhiPu()
+	zhipuMap = make(map[uint]*aicommunicate.ZhipuAIBot, 0)
 	http.HandleFunc("/Pinbot", Handler)
 	log.Println("Server starting on http://localhost:7823...")
-	ready = true
 	log.Fatal(http.ListenAndServe(":7823", nil))
-}
-
-func watchConfig() {
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
-	filemd5 := ""
-	for range ticker.C {
-		hash, err := utils.FileMD5("./config.yaml")
-		if err != nil {
-			log.Println("read config error: ", err)
-		}
-		if hash == filemd5 {
-			continue
-		}
-		filemd5 = hash
-		file, err := os.Open("./config.yaml")
-		if err != nil {
-			log.Println("error: ", err)
-		}
-		defer file.Close()
-		decoder := yaml.NewDecoder(file)
-		config.ConfigInstance_mu.Lock()
-		err = decoder.Decode(&config.ConfigInstance)
-		config.ConfigInstance_mu.Unlock()
-		if err != nil {
-			log.Println("error config: ", err)
-		}
-	}
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -100,8 +65,6 @@ func handleMessage(message []byte) {
 		return
 	}
 	if friendmsg.MessageType == "private" {
-		config.ConfigInstance_mu.RLock()
-		defer config.ConfigInstance_mu.RUnlock()
 		for _, uin := range config.ConfigInstance.Friend.Exclude {
 			if uin == strconv.Itoa(friendmsg.UserId) {
 				return
@@ -115,8 +78,6 @@ func handleMessage(message []byte) {
 		}
 
 	} else if friendmsg.MessageType == "group" {
-		config.ConfigInstance_mu.RLock()
-		defer config.ConfigInstance_mu.RUnlock()
 		groupmsg := model.GroupMessage{}
 		err := json.Unmarshal(message, &groupmsg)
 		if err != nil {
