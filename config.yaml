@@ -21,7 +21,8 @@ functionCall_maxC: 6
 
 # 赞噢校园集市token
 zanao_token: # 集市token 抓包请求头中的 X-Sc-Od
-zhipu_token: # 智谱AI token
+
+siliconflow_token: # 智谱AI token
 
 # 帮助：
 help_words:

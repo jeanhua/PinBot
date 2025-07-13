@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/jeanhua/PinBot/ai/aicommunicate"
-	botcommand "github.com/jeanhua/PinBot/botCommand"
+	"github.com/jeanhua/PinBot/botcommand"
 	"github.com/jeanhua/PinBot/config"
-	messageChain "github.com/jeanhua/PinBot/messagechain"
+	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
 	"github.com/jeanhua/PinBot/utils"
 )
@@ -34,40 +34,44 @@ func onPrivateMessage(msg model.FriendMessage) {
 	}
 
 	if llmLock.TryLock() == false {
-		chain := messageChain.Friend(uid)
+		chain := messagechain.Friend(uid)
 		chain.Text("正在思考中，不要着急哦")
-		messageChain.SendMessage(chain)
+		messagechain.SendMessage(chain)
 		return
 	}
 	defer llmLock.Unlock()
-	zhipu := zhipuMap[uint(msg.UserId)]
-	if zhipu == nil {
-		zhipu = aicommunicate.NewZhipu(config.ConfigInstance.ZhipuToken, config.ConfigInstance.AI_Prompt)
-		zhipuMap[uint(msg.UserId)] = zhipu
+	deepseek := aiModelMap[uint(msg.UserId)]
+	if deepseek == nil {
+		deepseek = aicommunicate.NewDeepSeekV3(config.ConfigInstance.AI_Prompt, config.ConfigInstance.SiliconflowToken, func(text string) {
+			chain := messagechain.Friend(uid)
+			chain.Text(text)
+			messagechain.SendMessage(chain)
+		})
+		aiModelMap[uint(msg.UserId)] = deepseek
 	}
-	reply := zhipu.Ask(text)
+	reply := deepseek.Ask(text)
 
 	if reply == nil {
-		chain := messageChain.Friend(uid)
+		chain := messagechain.Friend(uid)
 		chain.Text("抱歉，我遇到了一些问题，请稍后再试。")
-		messageChain.SendMessage(chain)
+		messagechain.SendMessage(chain)
 		return
 	}
 	rreply := []rune(reply.Response)
 	replyLength := len(rreply)
 	if replyLength <= 500 {
-		chain := messageChain.Friend(uid)
+		chain := messagechain.Friend(uid)
 		chain.Text(reply.Response)
-		messageChain.SendMessage(chain)
+		messagechain.SendMessage(chain)
 	} else {
 		for i := 0; i <= replyLength/500; i++ {
-			chain := messageChain.Friend(uid)
+			chain := messagechain.Friend(uid)
 			if (i+1)*500 < replyLength {
 				chain.Text(string(rreply[i*500 : (i+1)*500]))
-				messageChain.SendMessage(chain)
+				messagechain.SendMessage(chain)
 			} else if i*500 < replyLength {
 				chain.Text(string(rreply[i*500:]))
-				messageChain.SendMessage(chain)
+				messagechain.SendMessage(chain)
 			}
 			time.Sleep(time.Millisecond * 500)
 		}

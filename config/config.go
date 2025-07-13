@@ -1,12 +1,12 @@
 package config
 
 type ConfigModel struct {
-	Debug      bool   `yaml:"debug"`
-	Admin_id   int    `yaml:"admin_id"`
-	Test_group int    `yaml:"test_group"`
-	ZanaoToken string `yaml:"zanao_token"`
-	ZhipuToken string `yaml:"zhipu_token"`
-	Group      struct {
+	Debug            bool   `yaml:"debug"`
+	Admin_id         int    `yaml:"admin_id"`
+	Test_group       int    `yaml:"test_group"`
+	ZanaoToken       string `yaml:"zanao_token"`
+	SiliconflowToken string `yaml:"siliconflow_token"`
+	Group            struct {
 		Include []string `yaml:"include"`
 		Exclude []string `yaml:"exclude"`
 	} `yaml:"group"`

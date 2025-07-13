@@ -1,4 +1,4 @@
-package messageChain
+package messagechain
 
 import (
 	"bytes"
