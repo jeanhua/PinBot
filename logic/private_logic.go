@@ -45,6 +45,7 @@ func onPrivateMessage(msg model.FriendMessage) {
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(config.ConfigInstance.AI_Prompt, config.ConfigInstance.SiliconflowToken, func(text string) {
 			chain := messagechain.Friend(uid)
+			fmt.Println("发送语音")
 			chain.Text(text)
 			messagechain.SendMessage(chain)
 			speak = true

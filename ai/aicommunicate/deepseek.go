@@ -46,7 +46,7 @@ func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeek
 			Type:        "string",
 		},
 	}))
-	tools = append(tools, MakeFunctionCallTools("speak", "向用户发送一段不超过60s的语音", []ParamInfo{
+	tools = append(tools, MakeFunctionCallTools("speak", "调用这个工具可以向用户发送一段不超过60s的语音，偶尔可以调用玩一下", []ParamInfo{
 		{
 			Name:        "text",
 			Description: "要发送的文本内容",
@@ -132,12 +132,14 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) *AiAnswer {
 
 	var finalAnswer *AiAnswer
 
+	deepseek.messageChain = append(deepseek.messageChain, &Message{
+		Role:    "user",
+		Content: question,
+	})
+
 	for {
 		answer, err := request(
-			append(deepseek.messageChain, &Message{
-				Role:    "user",
-				Content: question,
-			}),
+			deepseek.messageChain,
 			"deepseek-ai/DeepSeek-V3",
 			deepseek.token,
 			deepseek.tools,
@@ -162,7 +164,6 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) *AiAnswer {
 				return nil
 			}
 			deepseek.messageChain = append(deepseek.messageChain,
-				&Message{Role: "user", Content: question},
 				&Message{
 					Role:       "tool",
 					Content:    callResult,

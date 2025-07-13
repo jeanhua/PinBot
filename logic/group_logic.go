@@ -2,6 +2,7 @@ package logic
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -87,6 +88,7 @@ func onGroupMessage(msg model.GroupMessage) {
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(config.ConfigInstance.AI_Prompt, config.ConfigInstance.SiliconflowToken, func(text string) {
 			aimsg := messagechain.AIMessage(msg.GroupId, "lucy-voice-suxinjiejie", text)
+			log.Println("发送语音")
 			aimsg.Send()
 			speak = true
 		})

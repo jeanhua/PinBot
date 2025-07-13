@@ -46,11 +46,13 @@ func CallFunction(name string, param map[string]any, sendVoice func(text string)
 		text, ok := param["text"].(string)
 		if ok {
 			sendVoice(text)
+			return "已成功给用户发送语音", nil
 		} else {
 			return "", fmt.Errorf(paramError)
 		}
+	default:
+		return "", fmt.Errorf("调用了无匹配的function call: %s", name)
 	}
-	return "", fmt.Errorf("无匹配的function call")
 }
 
 var zanao *utils.Zanao = &utils.Zanao{}
