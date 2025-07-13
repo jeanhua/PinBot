@@ -9,9 +9,9 @@ type AiModel interface {
 }
 
 type AiAnswer struct {
-	Response       string                      `json:"response"`
-	IsFunctionCall bool                        `json:"isFunction_call"`
-	FunctionCall   []functioncall.FunctionCall `json:"function_call"`
+	Response       string                       `json:"response"`
+	IsFunctionCall bool                         `json:"isFunction_call"`
+	FunctionCall   []*functioncall.FunctionCall `json:"function_call"`
 }
 
 type Message struct {

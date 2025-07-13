@@ -12,7 +12,7 @@ import (
 	"github.com/jeanhua/PinBot/ai/functioncall"
 )
 
-type ZhipuAIBot struct {
+type ZhipuAIBot_z1_flash struct {
 	token        string
 	SystemPrompt string
 	messageChain []*Message
@@ -20,6 +20,8 @@ type ZhipuAIBot struct {
 
 const toolPrompt = `当你想要使用工具时，输出一个 #Call + 工具
 你有以下可用工具：
+
+## 校园集市论坛相关：
 - 'browse_homepage()'：访问主页，获取最新的帖子列表。
 - 'browse_hot()'：访问24小时内热度最高的帖子列表。
 - 'search(keyword:string)'：使用关键词搜索相关帖子。
@@ -42,8 +44,8 @@ const toolPrompt = `当你想要使用工具时，输出一个 #Call + 工具
 3.有些#Call调用在短时间内是不变的，比如热帖，评论，帖子详情，请求过了就不要重复请求了
 `
 
-func NewZhipu(token string, prompt string) *ZhipuAIBot {
-	zp := &ZhipuAIBot{
+func NewZhipu(token string, prompt string) *ZhipuAIBot_z1_flash {
+	zp := &ZhipuAIBot_z1_flash{
 		token:        token,
 		SystemPrompt: prompt + "\n" + toolPrompt,
 	}
@@ -127,7 +129,8 @@ func request(msg []*Message, token string) *thinkingResponse {
 	}
 }
 
-func (zp *ZhipuAIBot) Ask(question string) *AiAnswer {
+func (zp *ZhipuAIBot_z1_flash) Ask(question string) *AiAnswer {
+	question = strings.TrimSpace(question)
 	if strings.HasPrefix(question, "#新对话") {
 		zp.messageChain = []*Message{
 			{
@@ -142,7 +145,7 @@ func (zp *ZhipuAIBot) Ask(question string) *AiAnswer {
 	})
 	isFunccall := false
 	funcCallNums := 0
-	funcs := []functioncall.FunctionCall{}
+	funcs := []*functioncall.FunctionCall{}
 	for {
 		resp := request(zp.messageChain, zp.token)
 		if resp == nil {
@@ -172,7 +175,7 @@ func (zp *ZhipuAIBot) Ask(question string) *AiAnswer {
 				})
 				continue
 			}
-			funcs = append(funcs, funccall)
+			funcs = append(funcs, &funccall)
 			log.Println("正在调用" + funccall.Action)
 			callResult := functioncall.CallFunction(&funccall)
 			if callResult == "" {

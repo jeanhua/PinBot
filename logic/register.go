@@ -17,7 +17,7 @@ import (
 )
 
 // 智谱AI
-var zhipuMap map[uint]*aicommunicate.ZhipuAIBot
+var zhipuMap map[uint]*aicommunicate.ZhipuAIBot_z1_flash
 
 // 大模型速率限制
 var llmLock sync.Mutex
@@ -33,7 +33,7 @@ func Register() {
 	if err != nil {
 		fmt.Println("error config: ", err)
 	}
-	zhipuMap = make(map[uint]*aicommunicate.ZhipuAIBot, 0)
+	zhipuMap = make(map[uint]*aicommunicate.ZhipuAIBot_z1_flash, 0)
 	http.HandleFunc("/Pinbot", Handler)
 	log.Println("Server starting on http://localhost:7823...")
 	log.Fatal(http.ListenAndServe(":7823", nil))
