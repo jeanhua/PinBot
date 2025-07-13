@@ -83,14 +83,19 @@ func onGroupMessage(msg model.GroupMessage) {
 	defer llmLock.Unlock()
 	uid := msg.UserId
 	deepseek := aiModelMap[uint(msg.GroupId)]
+	speak := false
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(config.ConfigInstance.AI_Prompt, config.ConfigInstance.SiliconflowToken, func(text string) {
 			aimsg := messagechain.AIMessage(msg.GroupId, "lucy-voice-suxinjiejie", text)
 			aimsg.Send()
+			speak = true
 		})
 		aiModelMap[uint(msg.GroupId)] = deepseek
 	}
 	reply := deepseek.Ask(text)
+	if speak == true {
+		return
+	}
 
 	if reply == nil {
 		chain := messagechain.Group(msg.GroupId)
