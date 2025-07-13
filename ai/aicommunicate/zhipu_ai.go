@@ -19,7 +19,7 @@ type ZhipuAIBot_z1_flash struct {
 	messageChain []*Message
 }
 
-const toolPrompt = `当你想要使用工具时，输出一个 #Call + 工具
+const toolPrompt = `正常情况下正常聊天就好，但是当你想要使用工具时，或者用户提到的问题和下面的工具相关时，你可以使用工具
 你有以下可用工具：
 
 ## 校园集市论坛相关：
