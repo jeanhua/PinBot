@@ -14,7 +14,9 @@ type ConfigModel struct {
 		Include []string `yaml:"include"`
 		Exclude []string `yaml:"exclude"`
 	} `yaml:"friend"`
-	AI_Prompt string `yaml:"ai_prompt"`
+	AI_Prompt        string `yaml:"ai_prompt"`
+	FunctionCallMaxC int    `yaml:"functionCall_maxC"`
+
 	HelpWords struct {
 		Group  string `yaml:"group"`
 		Friend string `yaml:"friend"`

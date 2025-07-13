@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/jeanhua/PinBot/ai/functioncall"
+	"github.com/jeanhua/PinBot/config"
 )
 
 type ZhipuAIBot_z1_flash struct {
@@ -157,7 +158,7 @@ func (zp *ZhipuAIBot_z1_flash) Ask(question string) *AiAnswer {
 			Content: resp.text,
 		})
 		if strings.HasPrefix(resp.text, "#Call") {
-			if funcCallNums >= 3 {
+			if funcCallNums >= config.ConfigInstance.FunctionCallMaxC {
 				zp.messageChain = append(zp.messageChain, &Message{
 					Role:    "user",
 					Content: "你的调用次数已达限制，请先回答用户问题",
