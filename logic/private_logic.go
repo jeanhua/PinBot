@@ -40,7 +40,6 @@ func onPrivateMessage(msg model.FriendMessage) {
 		return
 	}
 	defer llmLock.Unlock()
-	speak := false
 	deepseek := aiModelMap[uint(msg.UserId)]
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(config.ConfigInstance.AI_Prompt, config.ConfigInstance.SiliconflowToken, func(text string) {
@@ -48,13 +47,12 @@ func onPrivateMessage(msg model.FriendMessage) {
 			fmt.Println("发送语音")
 			chain.Text(text)
 			messagechain.SendMessage(chain)
-			speak = true
 		})
 		aiModelMap[uint(msg.UserId)] = deepseek
 	}
 	reply := deepseek.Ask(text)
 
-	if speak == true {
+	if strings.TrimSpace(reply.Response) == "" {
 		return
 	}
 

@@ -6,6 +6,7 @@ type ConfigModel struct {
 	Test_group       int    `yaml:"test_group"`
 	ZanaoToken       string `yaml:"zanao_token"`
 	SiliconflowToken string `yaml:"siliconflow_token"`
+	BochaToken       string `yaml:"bochaSearchToken"`
 	Group            struct {
 		Include []string `yaml:"include"`
 		Exclude []string `yaml:"exclude"`

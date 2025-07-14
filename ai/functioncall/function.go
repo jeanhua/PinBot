@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/utils"
 )
 
@@ -17,8 +18,14 @@ const paramError = "变量类型错误"
 func CallFunction(name string, param map[string]any, sendVoice func(text string)) (string, error) {
 	switch name {
 	case "browseHomepage":
-		return browseHomepage(), nil
-	case "search":
+		fromTime, ok := param["fromTime"].(string)
+		if ok {
+			return browseHomepage(fromTime), nil
+		} else {
+			return "", fmt.Errorf(paramError)
+		}
+
+	case "searchPost":
 		keywords, ok := param["keywords"].(string)
 		if ok {
 			return search(keywords), nil
@@ -50,16 +57,35 @@ func CallFunction(name string, param map[string]any, sendVoice func(text string)
 		} else {
 			return "", fmt.Errorf(paramError)
 		}
+	case "webSearch":
+		query, ok := param["query"].(string)
+		if !ok {
+			return "", fmt.Errorf("缺少或无效的搜索关键词 'query'")
+		}
+		freshness, _ := param["freshness"].(string)
+		include, _ := param["include"].(string)
+		exclude, _ := param["exclude"].(string)
+
+		summary := false
+		if s, ok := param["summary"].(bool); ok {
+			summary = s
+		}
+		count := 10 // 默认值
+		if c, ok := param["count"].(int); ok {
+			count = c
+		}
+		result := utils.WebSearch(config.ConfigInstance.BochaToken, query, freshness, summary, include, exclude, count)
+		return result, nil
 	default:
-		return "", fmt.Errorf("调用了无匹配的function call: %s", name)
+		return "function call不匹配，请检查后重试", nil
 	}
 }
 
 var zanao *utils.Zanao = &utils.Zanao{}
 
-func browseHomepage() string {
+func browseHomepage(fromTime string) string {
 	log.Println("调用 browseHomepage")
-	return zanao.GetNewest()
+	return zanao.GetNewest(fromTime)
 }
 
 func search(keywords string) string {

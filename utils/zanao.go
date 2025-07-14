@@ -69,8 +69,8 @@ func TrimSpaceAndBreakLine(s string) string {
 
 const contentHeader = "获取到如下内容：\n"
 
-func (z *Zanao) GetNewest() string {
-	request, err := http.NewRequest(http.MethodPost, "https://api.x.zanao.com/thread/v2/list", nil)
+func (z *Zanao) GetNewest(fromTime string) string {
+	request, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://api.x.zanao.com/thread/v2/list?from_time=%s", fromTime), nil)
 	if err != nil {
 		log.Println(err)
 		return ""

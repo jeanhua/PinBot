@@ -15,44 +15,28 @@ type DeepSeekAIBot_v3 struct {
 	token        string
 	SystemPrompt string
 	messageChain []*Message
-	tools        []*FunctionCallTools
+	tools        []*FunctionCallTool
 	sendVoidce   func(text string)
 }
 
 const requestUrl = "https://api.siliconflow.cn/v1/chat/completions"
 
 func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeekAIBot_v3 {
-	tools := []*FunctionCallTools{}
-	tools = append(tools, MakeFunctionCallTools("browseHomepage", "浏览校园集市论坛主页", []ParamInfo{}))
-	tools = append(tools, MakeFunctionCallTools("browseHot", "浏览校园集市论坛热门帖子", []ParamInfo{}))
-	tools = append(tools, MakeFunctionCallTools("search", "搜索校园集市论坛帖子", []ParamInfo{
-		{
-			Name:        "keywords",
-			Description: "搜索关键词",
-			Type:        "string",
-		},
-	}))
-	tools = append(tools, MakeFunctionCallTools("viewComments", "浏览校园集市论坛指定帖子的评论", []ParamInfo{
-		{
-			Name:        "postId",
-			Description: "帖子ID",
-			Type:        "string",
-		},
-	}))
-	tools = append(tools, MakeFunctionCallTools("viewPost", "浏览校园集市论坛帖子详情", []ParamInfo{
-		{
-			Name:        "postId",
-			Description: "帖子ID",
-			Type:        "string",
-		},
-	}))
-	tools = append(tools, MakeFunctionCallTools("speak", "调用这个工具可以向用户发送一段不超过60s的语音，偶尔可以调用玩一下", []ParamInfo{
-		{
-			Name:        "text",
-			Description: "要发送的文本内容",
-			Type:        "string",
-		},
-	}))
+	tools := FunctionCall{}
+	tools.AddFunction(MakeFunctionCallTools("browseHomepage", "浏览校园集市论坛主页", WithParams("fromTime", "时间戳,该时间戳前的10条帖子,输入0则表示最新的10条帖子,通过获取帖子后再输入最后帖子的时间戳来实现翻页", "string")))
+	tools.AddFunction(MakeFunctionCallTools("browseHot", "浏览校园集市论坛热门帖子"))
+	tools.AddFunction(MakeFunctionCallTools("searchPost", "搜索校园集市论坛帖子", WithParams("keywords", "搜索关键词", "string")))
+	tools.AddFunction(MakeFunctionCallTools("viewComments", "浏览校园集市论坛指定帖子的评论", WithParams("postId", "帖子ID", "string")))
+	tools.AddFunction(MakeFunctionCallTools("viewPost", "调用这个工具可以向用户发送一段不超过60s的语音，偶尔可以调用玩一下", WithParams("postId", "帖子ID", "string")))
+	tools.AddFunction(MakeFunctionCallTools("speak", "调用这个工具可以向用户发送一段不超过60s的语音，偶尔可以调用玩一下", WithParams("text", "要发送的文本内容", "string")))
+	tools.AddFunction(MakeFunctionCallTools("webSearch", "执行网页搜索获取结果",
+		WithParams("query", "搜索关键词", "string"),
+		WithParams("token", "身份验证Token（可选）", "string"),
+		WithParams("freshness", "限制搜索结果的新鲜程度（可选），例如 - noLimit，不限（默认）oneDay，一天内 oneWeek，一周内 oneMonth，一个月内 oneYear，一年内 YYYY-MM-DD..YYYY-MM-DD，搜索日期范围，例如：\"2025-01-01..2025-04-06\" YYYY-MM-DD，搜索指定日期，例如：\"2025-04-06\"", "string"),
+		WithParams("summary", "是否生成摘要信息（可选）", "bool"),
+		WithParams("include", "指定包含的网站或域名（可选），多个域名使用|或,分隔，最多不能超过20个", "string"),
+		WithParams("exclude", "指定排除的网站或域名（可选），排除搜索的网站范围。多个域名使用|或,分隔，最多不能超过20个", "string"),
+		WithParams("count", "搜索结果数量，默认为5（可选）", "int")))
 	return &DeepSeekAIBot_v3{
 		messageChain: []*Message{
 			{
@@ -67,7 +51,7 @@ func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeek
 	}
 }
 
-func request(msg []*Message, model, token string, tools []*FunctionCallTools) (*CommonResponseBody, error) {
+func request(msg []*Message, model, token string, tools []*FunctionCallTool) (*CommonResponseBody, error) {
 
 	debug := false
 

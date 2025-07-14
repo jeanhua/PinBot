@@ -9,11 +9,11 @@ type AiAnswer struct {
 }
 
 type CommonRequestBody struct {
-	Model           string               `json:"model"`
-	Messages        []*Message           `json:"messages"`
-	Stream          bool                 `json:"stream"`
-	Enable_thinking bool                 `json:"enable_thinking"`
-	Tools           []*FunctionCallTools `json:"tools"`
+	Model           string              `json:"model"`
+	Messages        []*Message          `json:"messages"`
+	Stream          bool                `json:"stream"`
+	Enable_thinking bool                `json:"enable_thinking"`
+	Tools           []*FunctionCallTool `json:"tools"`
 }
 
 type Message struct {
@@ -21,7 +21,7 @@ type Message struct {
 	Content    string `json:"content"`
 	ToolCallId string `json:"tool_call_id"`
 }
-type FunctionCallTools struct {
+type FunctionCallTool struct {
 	Type     string `json:"type"` // function
 	Function struct {
 		Name        string `json:"name"`
@@ -57,7 +57,7 @@ type CommonResponseBody struct {
 	} `json:"choices"`
 }
 
-func MakeFunctionCallTools(funcName, description string, param []ParamInfo) *FunctionCallTools {
+func MakeFunctionCallTools(funcName, description string, param ...ParamInfo) *FunctionCallTool {
 	var types map[string]struct {
 		Type        string "json:\"type\""
 		Description string "json:\"description\""
@@ -76,7 +76,7 @@ func MakeFunctionCallTools(funcName, description string, param []ParamInfo) *Fun
 		}
 		requires = append(requires, p.Name)
 	}
-	return &FunctionCallTools{
+	return &FunctionCallTool{
 		Type: "function",
 		Function: struct {
 			Name        string "json:\"name\""
@@ -104,8 +104,22 @@ func MakeFunctionCallTools(funcName, description string, param []ParamInfo) *Fun
 				Properties: types,
 			},
 			Required: requires,
-			Strict:   true,
+			Strict:   false,
 		},
+	}
+}
+
+type FunctionCall []*FunctionCallTool
+
+func (funcs *FunctionCall) AddFunction(tool *FunctionCallTool) {
+	*funcs = append(*funcs, tool)
+}
+
+func WithParams(name, description, paramType string) ParamInfo {
+	return ParamInfo{
+		Name:        name,
+		Description: description,
+		Type:        paramType,
 	}
 }
 
