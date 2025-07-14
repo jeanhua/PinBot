@@ -16,6 +16,7 @@ type FunctionCall struct {
 const paramError = "变量类型错误"
 
 func CallFunction(name string, param map[string]any, sendVoice func(text string)) (string, error) {
+	log.Println("call function: name:", name, "param", param)
 	switch name {
 	case "browseHomepage":
 		fromTime, ok := param["fromTime"].(string)

@@ -1,7 +1,7 @@
 package aicommunicate
 
 type AiModel interface {
-	Ask(question string) *AiAnswer
+	Ask(question string) []*AiAnswer
 }
 
 type AiAnswer struct {

@@ -2,7 +2,7 @@ package aicommunicate
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"testing"
 )
 
@@ -18,6 +18,6 @@ func TestDeepseekFuncs(t *testing.T) {
 	if err != nil {
 		panic("error in json")
 	}
-	fmt.Println(string(res))
-	fmt.Println("yes")
+	log.Println(string(res))
+	log.Println("yes")
 }

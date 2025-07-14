@@ -26,13 +26,12 @@ func WebSearch(token, query string, timeRange *string, include, exclude []string
 	bodyMap["max_results"] = count
 	bodyBytes, err := json.Marshal(&bodyMap)
 	if err != nil {
-		fmt.Println("error in marshal json: webSearch request body")
+		log.Println("error in marshal json: webSearch request body")
 		return "查询失败"
 	}
-	log.Println(string(bodyBytes))
 	httpRequest, err := http.NewRequest(http.MethodPost, endPoint, bytes.NewReader(bodyBytes))
 	if err != nil {
-		fmt.Println("error in create request: webSearch")
+		log.Println("error in create request: webSearch")
 		return "查询失败"
 	}
 	httpRequest.Header.Set("Content-Type", "application/json")
@@ -40,24 +39,24 @@ func WebSearch(token, query string, timeRange *string, include, exclude []string
 	client := &http.Client{}
 	resp, err := client.Do(httpRequest)
 	if err != nil {
-		fmt.Println("error in sendResponse: webSearch")
+		log.Println("error in sendResponse: webSearch")
 		return "查询失败"
 	}
 	if resp.StatusCode != 200 {
-		fmt.Println("error in response: webSearch, status code:", resp.StatusCode)
+		log.Println("error in response: webSearch, status code:", resp.StatusCode)
 		return "查询失败"
 	}
 	defer resp.Body.Close()
 	respbytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("error in read body: webSearch")
+		log.Println("error in read body: webSearch")
 		return "查询失败"
 	}
 	searchResponse := SearchResponse{}
 	err = json.Unmarshal(respbytes, &searchResponse)
 	if err != nil {
-		fmt.Println("error in json unmarshal in response: webSearch")
-		fmt.Println(string(respbytes))
+		log.Println("error in json unmarshal in response: webSearch")
+		log.Println(string(respbytes))
 		return "查询失败"
 	}
 	return searchResponse.toString()

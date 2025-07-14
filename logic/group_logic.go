@@ -92,42 +92,44 @@ func onGroupMessage(msg model.GroupMessage) {
 		})
 		aiModelMap[uint(msg.GroupId)] = deepseek
 	}
-	reply := deepseek.Ask(text)
-	if strings.TrimSpace(reply.Response) == "" {
-		return
-	}
-
-	if reply == nil {
-		chain := messagechain.Group(msg.GroupId)
-		chain.Reply(msg.MessageId)
-		chain.Mention(int(uid))
-		chain.Text(" 抱歉，我遇到了一些问题，请稍后再试。")
-		messagechain.SendMessage(chain)
-		return
-	}
-
-	rreply := []rune(reply.Response)
-	replyLength := len(rreply)
-
-	if replyLength <= 500 {
-		chain := messagechain.Group(msg.GroupId)
-		chain.Reply(msg.MessageId)
-		chain.Mention(int(uid))
-		chain.Text(" " + reply.Response)
-		messagechain.SendMessage(chain)
-	} else {
-		forward := messagechain.GroupForward(msg.GroupId, "聊天记录")
-		chain := messagechain.Group(msg.GroupId)
-		chain.Mention(msg.UserId)
-		messagechain.SendMessage(chain)
-		for i := 0; i <= replyLength/500; i++ {
-			if (i+1)*500 < replyLength {
-				forward.Text(string(rreply[i*500:(i+1)*500]), msg.SelfId, "江颦")
-			} else if i*500 < replyLength {
-				forward.Text(string(rreply[i*500:]), msg.SelfId, "江颦")
-			}
+	replys := deepseek.Ask(text)
+	for _, reply := range replys {
+		if strings.TrimSpace(reply.Response) == "" {
+			return
 		}
-		time.Sleep(500 * time.Millisecond)
-		forward.Send()
+
+		if reply == nil {
+			chain := messagechain.Group(msg.GroupId)
+			chain.Reply(msg.MessageId)
+			chain.Mention(int(uid))
+			chain.Text(" 抱歉，我遇到了一些问题，请稍后再试。")
+			messagechain.SendMessage(chain)
+			return
+		}
+
+		rreply := []rune(reply.Response)
+		replyLength := len(rreply)
+
+		if replyLength <= 500 {
+			chain := messagechain.Group(msg.GroupId)
+			chain.Reply(msg.MessageId)
+			chain.Mention(int(uid))
+			chain.Text(" " + reply.Response)
+			messagechain.SendMessage(chain)
+		} else {
+			forward := messagechain.GroupForward(msg.GroupId, "聊天记录")
+			chain := messagechain.Group(msg.GroupId)
+			chain.Mention(msg.UserId)
+			messagechain.SendMessage(chain)
+			for i := 0; i <= replyLength/500; i++ {
+				if (i+1)*500 < replyLength {
+					forward.Text(string(rreply[i*500:(i+1)*500]), msg.SelfId, "江颦")
+				} else if i*500 < replyLength {
+					forward.Text(string(rreply[i*500:]), msg.SelfId, "江颦")
+				}
+			}
+			time.Sleep(500 * time.Millisecond)
+			forward.Send()
+		}
 	}
 }

@@ -177,7 +177,7 @@ func (mc *FriendChain) build() []byte {
 		return nil
 	}
 	if DEBUG {
-		fmt.Println(string(result))
+		log.Println(string(result))
 	}
 	return result
 }
@@ -188,7 +188,7 @@ func (mc *GroupChain) build() []byte {
 		return nil
 	}
 	if DEBUG {
-		fmt.Println(string(result))
+		log.Println(string(result))
 	}
 	return result
 }

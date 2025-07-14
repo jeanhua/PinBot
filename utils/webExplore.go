@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -18,12 +19,12 @@ func WebExplore(links []string, token string) string {
 	}
 	postBytes, err := json.Marshal(postBody)
 	if err != nil {
-		fmt.Println("error in json marshal: webExplore", err)
+		log.Println("error in json marshal: webExplore", err)
 		return failText
 	}
 	httpRequest, err := http.NewRequest(http.MethodPost, requestUrl, bytes.NewReader(postBytes))
 	if err != nil {
-		fmt.Println("error in create request: webExplore")
+		log.Println("error in create request: webExplore")
 		return failText
 	}
 	httpRequest.Header.Set("Content-Type", "application/json")
@@ -31,23 +32,23 @@ func WebExplore(links []string, token string) string {
 	client := &http.Client{}
 	resp, err := client.Do(httpRequest)
 	if err != nil {
-		fmt.Println("error in send request: webExplore", err)
+		log.Println("error in send request: webExplore", err)
 		return failText
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		fmt.Println("error in response: webSearch, status code:", resp.StatusCode)
+		log.Println("error in response: webSearch, status code:", resp.StatusCode)
 		return "查询失败"
 	}
 	respbytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("error in read response body: webExplore", err)
+		log.Println("error in read response body: webExplore", err)
 		return failText
 	}
 	var response WebExploreResponse
 	err = json.Unmarshal(respbytes, &response)
 	if err != nil {
-		fmt.Println("error in jsonUnMarshal: webExplore", err)
+		log.Println("error in jsonUnMarshal: webExplore", err)
 		return failText
 	}
 	return response.ToReadableString()

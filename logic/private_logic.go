@@ -2,6 +2,7 @@ package logic
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -44,41 +45,43 @@ func onPrivateMessage(msg model.FriendMessage) {
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(config.ConfigInstance.AI_Prompt, config.ConfigInstance.SiliconflowToken, func(text string) {
 			chain := messagechain.Friend(uid)
-			fmt.Println("发送语音")
+			log.Println("发送语音")
 			chain.Text(text)
 			messagechain.SendMessage(chain)
 		})
 		aiModelMap[uint(msg.UserId)] = deepseek
 	}
-	reply := deepseek.Ask(text)
+	replys := deepseek.Ask(text)
+	for _, reply := range replys {
+		if strings.TrimSpace(reply.Response) == "" {
+			return
+		}
 
-	if strings.TrimSpace(reply.Response) == "" {
-		return
-	}
-
-	if reply == nil {
-		chain := messagechain.Friend(uid)
-		chain.Text("抱歉，我遇到了一些问题，请稍后再试。")
-		messagechain.SendMessage(chain)
-		return
-	}
-	rreply := []rune(reply.Response)
-	replyLength := len(rreply)
-	if replyLength <= 500 {
-		chain := messagechain.Friend(uid)
-		chain.Text(reply.Response)
-		messagechain.SendMessage(chain)
-	} else {
-		for i := 0; i <= replyLength/500; i++ {
+		if reply == nil {
 			chain := messagechain.Friend(uid)
-			if (i+1)*500 < replyLength {
-				chain.Text(string(rreply[i*500 : (i+1)*500]))
-				messagechain.SendMessage(chain)
-			} else if i*500 < replyLength {
-				chain.Text(string(rreply[i*500:]))
-				messagechain.SendMessage(chain)
+			chain.Text("抱歉，我遇到了一些问题，请稍后再试。")
+			messagechain.SendMessage(chain)
+			return
+		}
+		rreply := []rune(reply.Response)
+		replyLength := len(rreply)
+		if replyLength <= 500 {
+			chain := messagechain.Friend(uid)
+			chain.Text(reply.Response)
+			messagechain.SendMessage(chain)
+		} else {
+			for i := 0; i <= replyLength/500; i++ {
+				chain := messagechain.Friend(uid)
+				if (i+1)*500 < replyLength {
+					chain.Text(string(rreply[i*500 : (i+1)*500]))
+					messagechain.SendMessage(chain)
+				} else if i*500 < replyLength {
+					chain.Text(string(rreply[i*500:]))
+					messagechain.SendMessage(chain)
+				}
+				time.Sleep(time.Millisecond * 500)
 			}
-			time.Sleep(time.Millisecond * 500)
 		}
 	}
+
 }

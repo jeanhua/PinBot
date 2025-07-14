@@ -2,7 +2,6 @@ package logic
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -25,13 +24,13 @@ var llmLock sync.Mutex
 func Register() {
 	file, err := os.Open("./config.yaml")
 	if err != nil {
-		fmt.Println("error: ", err)
+		log.Println("error: ", err)
 	}
 	defer file.Close()
 	decoder := yaml.NewDecoder(file)
 	err = decoder.Decode(&config.ConfigInstance)
 	if err != nil {
-		fmt.Println("error config: ", err)
+		log.Println("error config: ", err)
 	}
 	aiModelMap = make(map[uint]aicommunicate.AiModel, 0)
 	http.HandleFunc("/Pinbot", Handler)
