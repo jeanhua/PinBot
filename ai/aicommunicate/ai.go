@@ -106,7 +106,7 @@ func MakeFunctionCallTools(funcName, description string, param ...ParamInfo) *Fu
 				Properties: types,
 			},
 			Required: requires,
-			Strict:   false,
+			Strict:   true,
 		},
 	}
 }
