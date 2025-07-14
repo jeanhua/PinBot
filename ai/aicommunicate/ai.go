@@ -74,7 +74,9 @@ func MakeFunctionCallTools(funcName, description string, param ...ParamInfo) *Fu
 			Type:        p.Type,
 			Description: p.Description,
 		}
-		requires = append(requires, p.Name)
+		if p.Require {
+			requires = append(requires, p.Name)
+		}
 	}
 	return &FunctionCallTool{
 		Type: "function",
@@ -115,11 +117,12 @@ func (funcs *FunctionCall) AddFunction(tool *FunctionCallTool) {
 	*funcs = append(*funcs, tool)
 }
 
-func WithParams(name, description, paramType string) ParamInfo {
+func WithParams(name, description, paramType string, require bool) ParamInfo {
 	return ParamInfo{
 		Name:        name,
 		Description: description,
 		Type:        paramType,
+		Require:     require,
 	}
 }
 
@@ -127,4 +130,5 @@ type ParamInfo struct {
 	Name        string
 	Description string
 	Type        string
+	Require     bool
 }
