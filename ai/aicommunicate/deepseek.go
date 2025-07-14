@@ -27,16 +27,24 @@ func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeek
 	tools.AddFunction(MakeFunctionCallTools("browseHot", "浏览校园集市论坛热门帖子"))
 	tools.AddFunction(MakeFunctionCallTools("searchPost", "搜索校园集市论坛帖子", WithParams("keywords", "搜索关键词", "string")))
 	tools.AddFunction(MakeFunctionCallTools("viewComments", "浏览校园集市论坛指定帖子的评论", WithParams("postId", "帖子ID", "string")))
-	tools.AddFunction(MakeFunctionCallTools("viewPost", "调用这个工具可以向用户发送一段不超过60s的语音，偶尔可以调用玩一下", WithParams("postId", "帖子ID", "string")))
+	tools.AddFunction(MakeFunctionCallTools("viewPost", "查看校园集市论坛某个帖子详情", WithParams("postId", "帖子ID", "string")))
 	tools.AddFunction(MakeFunctionCallTools("speak", "调用这个工具可以向用户发送一段不超过60s的语音，偶尔可以调用玩一下", WithParams("text", "要发送的文本内容", "string")))
-	tools.AddFunction(MakeFunctionCallTools("webSearch", "执行网页搜索获取结果",
-		WithParams("query", "搜索关键词", "string"),
-		WithParams("token", "身份验证Token（可选）", "string"),
-		WithParams("freshness", "限制搜索结果的新鲜程度（可选），例如 - noLimit，不限（默认）oneDay，一天内 oneWeek，一周内 oneMonth，一个月内 oneYear，一年内 YYYY-MM-DD..YYYY-MM-DD，搜索日期范围，例如：\"2025-01-01..2025-04-06\" YYYY-MM-DD，搜索指定日期，例如：\"2025-04-06\"", "string"),
-		WithParams("summary", "是否生成摘要信息（可选）", "bool"),
-		WithParams("include", "指定包含的网站或域名（可选），多个域名使用|或,分隔，最多不能超过20个", "string"),
-		WithParams("exclude", "指定排除的网站或域名（可选），排除搜索的网站范围。多个域名使用|或,分隔，最多不能超过20个", "string"),
-		WithParams("count", "搜索结果数量，默认为5（可选）", "int")))
+	tools.AddFunction(MakeFunctionCallTools(
+		"webSearch",
+		"执行网络搜索，用于获取互联网相关信息",
+		WithParams("query", "搜索查询内容", "string"),
+		WithParams("timeRange", "限制搜索结果的时间范围（可选）（如：day, week , month ,year）", "string"),
+		WithParams("include", "限定搜索结果必须包含的域名列表（可选）", "array<string>"),
+		WithParams("exclude", "排除特定域名的搜索结果（可选）", "array<string>"),
+		WithParams("count", "返回的最大搜索结果数量（可选）", "int"),
+	))
+
+	tools.AddFunction(MakeFunctionCallTools(
+		"webExplore",
+		"根据提供的链接列表抓取网页内容或进一步探索",
+		WithParams("links", "要抓取或探索的网页链接数组", "array<string>"),
+	))
+
 	return &DeepSeekAIBot_v3{
 		messageChain: []*Message{
 			{

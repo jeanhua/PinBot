@@ -24,7 +24,7 @@ zanao_token: # 集市token 抓包请求头中的 X-Sc-Od
 
 siliconflow_token: # 智谱AI token
 
-bochaSearchToken: # 博查搜索api token
+tavilyToken: # tavily api token
 
 # 帮助：
 help_words:

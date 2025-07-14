@@ -5,31 +5,38 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
-	"strings"
+	"strconv"
 )
 
-func WebSearch(token, query, freshness string, summary bool, include, exclude string, count int) string {
-	endPoint := "https://api.bochaai.com/v1/web-search"
+func WebSearch(token, query string, timeRange *string, include, exclude []string, count int) string {
+	endPoint := "https://api.tavily.com/search"
 	bodyMap := map[string]any{}
 	bodyMap["query"] = query
-	bodyMap["freshness"] = freshness
-	bodyMap["summary"] = summary
-	bodyMap["include"] = include
-	bodyMap["exclude"] = exclude
-	bodyMap["count"] = count
+	if timeRange != nil {
+		bodyMap["time_range"] = *timeRange
+	}
+	if len(include) != 0 {
+		bodyMap["include_domains"] = include
+	}
+	if len(exclude) != 0 {
+		bodyMap["exclude_domains"] = exclude
+	}
+	bodyMap["max_results"] = count
 	bodyBytes, err := json.Marshal(&bodyMap)
 	if err != nil {
 		fmt.Println("error in marshal json: webSearch request body")
 		return "查询失败"
 	}
+	log.Println(string(bodyBytes))
 	httpRequest, err := http.NewRequest(http.MethodPost, endPoint, bytes.NewReader(bodyBytes))
 	if err != nil {
 		fmt.Println("error in create request: webSearch")
 		return "查询失败"
 	}
-	httpRequest.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	httpRequest.Header.Set("Content-Type", "application/json")
+	httpRequest.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	client := &http.Client{}
 	resp, err := client.Do(httpRequest)
 	if err != nil {
@@ -53,52 +60,35 @@ func WebSearch(token, query, freshness string, summary bool, include, exclude st
 		fmt.Println(string(respbytes))
 		return "查询失败"
 	}
-	return searchResponse.ToString()
+	return searchResponse.toString()
 }
 
 type SearchResponse struct {
-	Code int `json:"code"`
-	Data struct {
-		QueryContext struct {
-			OriginalQuery string `json:"originalQuery"`
-		} `json:"queryContext"`
-		WebPages struct {
-			WebSearchUrl string `json:"webSearchUrl"`
-			Value        []struct {
-				Name            string `json:"name"`            // 网页的标题
-				URL             string `json:"url"`             // 网页的URL
-				DisplayURL      string `json:"displayUrl"`      // 网页的展示URL（url decode后的格式）
-				Snippet         string `json:"snippet"`         // 网页内容的简短描述
-				Summary         string `json:"summary"`         // 网页内容的文本摘要，当请求参数中 summary 为 true 时显示此属性
-				SiteName        string `json:"siteName"`        // 网页的网站名称
-				SiteIcon        string `json:"siteIcon"`        // 网页的网站图标
-				DateLastCrawled string `json:"dateLastCrawled"` // 网页的发布时间
-			} `json:"value"`
-		} `json:"webPages"`
-	} `json:"data"`
+	Query   string `json:"query"`
+	Results []struct {
+		URL     string  `json:"url"`
+		Title   string  `json:"title"`
+		Content string  `json:"content"`
+		Score   float64 `json:"score"`
+	} `json:"results"`
+	ResponseTime float64 `json:"response_time"` // 响应时间
 }
 
-func (sr *SearchResponse) ToString() string {
-	var b strings.Builder
+func (sr *SearchResponse) toString() string {
+	var output string
 
-	if sr.Data.QueryContext.OriginalQuery != "" {
-		b.WriteString(fmt.Sprintf("Query Context: %s\n", sr.Data.QueryContext.OriginalQuery))
-	}
-	webPages := sr.Data.WebPages
-	b.WriteString(fmt.Sprintf("Web Search URL: %s\n", webPages.WebSearchUrl))
-	b.WriteString("Results:\n")
+	output += "Search Query: " + sr.Query + "\n"
+	output += fmt.Sprintf("Total Results: %d\n", len(sr.Results))
+	output += fmt.Sprintf("Response Time: %.3f seconds\n", sr.ResponseTime)
+	output += "\nResults:\n"
 
-	for i, result := range webPages.Value {
-		b.WriteString(fmt.Sprintf("  %d. Title: %s\n", i+1, result.Name))
-		b.WriteString(fmt.Sprintf("     URL: %s\n", result.URL))
-		b.WriteString(fmt.Sprintf("     Display URL: %s\n", result.DisplayURL))
-		b.WriteString(fmt.Sprintf("     Snippet: %s\n", result.Snippet))
-		if result.Summary != "" {
-			b.WriteString(fmt.Sprintf("     Summary: %s\n", result.Summary))
-		}
-		b.WriteString(fmt.Sprintf("     Site Name: %s\n", result.SiteName))
-		b.WriteString(fmt.Sprintf("     Date Last Crawled: %s\n", result.DateLastCrawled))
-		b.WriteString("\n")
+	for i, result := range sr.Results {
+		output += fmt.Sprintf("Result #%d:\n", i+1)
+		output += "  标题:   " + result.Title + "\n"
+		output += "  URL:     " + result.URL + "\n"
+		output += "  内容: " + result.Content + "\n"
+		output += "  置信度:   " + strconv.FormatFloat(result.Score, 'f', -1, 64) + "\n"
+		output += "\n"
 	}
-	return b.String()
+	return output
 }

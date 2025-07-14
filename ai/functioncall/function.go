@@ -60,21 +60,43 @@ func CallFunction(name string, param map[string]any, sendVoice func(text string)
 	case "webSearch":
 		query, ok := param["query"].(string)
 		if !ok {
-			return "", fmt.Errorf("缺少或无效的搜索关键词 'query'")
+			return "", fmt.Errorf(paramError)
 		}
-		freshness, _ := param["freshness"].(string)
-		include, _ := param["include"].(string)
-		exclude, _ := param["exclude"].(string)
 
-		summary := false
-		if s, ok := param["summary"].(bool); ok {
-			summary = s
+		var timeRange *string
+		if tr, ok := param["timeRange"].(string); ok {
+			timeRange = &tr
+		} else {
+			timeRange = nil
 		}
-		count := 10 // 默认值
-		if c, ok := param["count"].(int); ok {
-			count = c
+
+		include, _ := param["include"].([]string)
+		exclude, _ := param["exclude"].([]string)
+
+		count, ok := param["count"].(int)
+		if !ok {
+			count = 10
 		}
-		result := utils.WebSearch(config.ConfigInstance.BochaToken, query, freshness, summary, include, exclude, count)
+		result := utils.WebSearch(config.ConfigInstance.TavilyToken, query, timeRange, include, exclude, count)
+		return result, nil
+	case "webExplore":
+		linksInterface, ok := param["links"]
+		if !ok {
+			return "", fmt.Errorf("缺少参数: links")
+		}
+		linksSlice, ok := linksInterface.([]interface{})
+		if !ok {
+			return "", fmt.Errorf("参数 links 格式错误，应为字符串数组")
+		}
+		var links []string
+		for _, v := range linksSlice {
+			str, ok := v.(string)
+			if !ok {
+				return "", fmt.Errorf("links 数组中包含非字符串元素")
+			}
+			links = append(links, str)
+		}
+		result := utils.WebExplore(links, config.ConfigInstance.TavilyToken)
 		return result, nil
 	default:
 		return "function call不匹配，请检查后重试", nil
