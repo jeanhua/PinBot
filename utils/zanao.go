@@ -105,7 +105,8 @@ func (z *Zanao) GetNewest(fromTime string) string {
 		back.WriteString("标题: " + TrimSpaceAndBreakLine(post.Title) + "\n")
 		back.WriteString("内容: " + TrimSpaceAndBreakLine(post.Content) + "\n")
 		back.WriteString("浏览量: " + strconv.Itoa(post.ViewCount) + "\n")
-		back.WriteString("点赞数: " + post.LikeCount + "\n\n")
+		back.WriteString("点赞数: " + post.LikeCount + "\n")
+		back.WriteString("时间戳: " + post.PTime + "\n\n")
 	}
 	return back.String()
 }
@@ -286,6 +287,7 @@ type PostsList struct {
 			Content   string `json:"content"`    // 内容
 			ViewCount int    `json:"view_count"` // 浏览量
 			LikeCount string `json:"l_count"`    // 点赞数
+			PTime     string `json:"p_time"`     // 时间戳
 		} `json:"list"`
 	} `json:"data"`
 }
