@@ -3,10 +3,15 @@ package functioncall
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/utils"
 )
+
+type FunctionHandler interface {
+	Handle(params map[string]any, sendVoice func(text string)) (string, error)
+}
 
 type FunctionCall struct {
 	Action string         `json:"action"`
@@ -15,118 +20,163 @@ type FunctionCall struct {
 
 const paramError = "变量类型错误"
 
-func CallFunction(name string, param map[string]any, sendVoice func(text string)) (string, error) {
-	log.Println("call function: name:", name, "param", param)
-	switch name {
-	case "browseHomepage":
-		fromTime, ok := param["fromTime"].(string)
-		if ok {
-			return browseHomepage(fromTime), nil
-		} else {
-			return "", fmt.Errorf(paramError)
-		}
+var zanao = &utils.Zanao{}
 
-	case "searchPost":
-		keywords, ok := param["keywords"].(string)
-		if ok {
-			return search(keywords), nil
-		} else {
-			return "", fmt.Errorf(paramError)
-		}
+// 函数注册表
+var functionRegistry = map[string]FunctionHandler{
+	"browseHomepage": &BrowseHomepageHandler{},
+	"searchPost":     &SearchPostHandler{},
+	"viewPost":       &ViewPostHandler{},
+	"browseHot":      &BrowseHotHandler{},
+	"viewComments":   &ViewCommentsHandler{},
+	"speak":          &SpeakHandler{},
+	"webSearch":      &WebSearchHandler{},
+	"webExplore":     &WebExploreHandler{},
+	"getCurrentTime": &GetCurrentTimeHandler{},
+}
 
-	case "viewPost":
-		postId, ok := param["postId"].(string)
-		if ok {
-			return viewPost(postId), nil
-		} else {
-			return "", fmt.Errorf(paramError)
-		}
-	case "browseHot":
-		return browseHot(), nil
-	case "viewComments":
-		postId, ok := param["postId"].(string)
-		if ok {
-			return viewComments(postId), nil
-		} else {
-			return "", fmt.Errorf(paramError)
-		}
-	case "speak":
-		text, ok := param["text"].(string)
-		if ok {
-			sendVoice(text)
-			return "已成功给用户发送语音，你可以继续回复用户，或者输出一个空格结束", nil
-		} else {
-			return "", fmt.Errorf(paramError)
-		}
-	case "webSearch":
-		query, ok := param["query"].(string)
-		if !ok {
-			return "", fmt.Errorf(paramError)
-		}
-
-		var timeRange *string
-		if tr, ok := param["timeRange"].(string); ok {
-			timeRange = &tr
-		} else {
-			timeRange = nil
-		}
-
-		include, _ := param["include"].([]string)
-		exclude, _ := param["exclude"].([]string)
-
-		count, ok := param["count"].(int)
-		if !ok {
-			count = 10
-		}
-		result := utils.WebSearch(config.ConfigInstance.TavilyToken, query, timeRange, include, exclude, count)
-		return result, nil
-	case "webExplore":
-		linksInterface, ok := param["links"]
-		if !ok {
-			return "", fmt.Errorf("缺少参数: links")
-		}
-		linksSlice, ok := linksInterface.([]interface{})
-		if !ok {
-			return "", fmt.Errorf("参数 links 格式错误，应为字符串数组")
-		}
-		var links []string
-		for _, v := range linksSlice {
-			str, ok := v.(string)
-			if !ok {
-				return "", fmt.Errorf("links 数组中包含非字符串元素")
-			}
-			links = append(links, str)
-		}
-		result := utils.WebExplore(links, config.ConfigInstance.TavilyToken)
-		return result, nil
-	default:
+func CallFunction(name string, params map[string]any, sendVoice func(text string)) (string, error) {
+	log.Println("call function: name:", name, "params", params)
+	handler, ok := functionRegistry[name]
+	if !ok {
 		return "function call不匹配，请检查后重试", nil
 	}
+	return handler.Handle(params, sendVoice)
 }
 
-var zanao *utils.Zanao = &utils.Zanao{}
+type BrowseHomepageHandler struct{}
 
-func browseHomepage(fromTime string) string {
-	log.Println("调用 browseHomepage")
-	return zanao.GetNewest(fromTime)
+func (h *BrowseHomepageHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+	fromTime, err := getStringParam(params, "fromTime")
+	if err != nil {
+		return "", err
+	}
+	return zanao.GetNewest(fromTime), nil
 }
 
-func search(keywords string) string {
-	log.Println("调用 search")
-	return zanao.Search(keywords)
+type SearchPostHandler struct{}
+
+func (h *SearchPostHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+	keywords, err := getStringParam(params, "keywords")
+	if err != nil {
+		return "", err
+	}
+	return zanao.Search(keywords), nil
 }
 
-func viewPost(postId string) string {
-	log.Println("调用 viewPost")
-	return zanao.GetDetail(postId)
+type ViewPostHandler struct{}
+
+func (h *ViewPostHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+	postId, err := getStringParam(params, "postId")
+	if err != nil {
+		return "", err
+	}
+	return zanao.GetDetail(postId), nil
 }
 
-func browseHot() string {
-	log.Println("调用 browseHot")
-	return zanao.GetHot()
+type BrowseHotHandler struct{}
+
+func (h *BrowseHotHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+	return zanao.GetHot(), nil
 }
 
-func viewComments(postId string) string {
-	log.Println("调用 viewComments")
-	return zanao.GetComments(postId)
+type ViewCommentsHandler struct{}
+
+func (h *ViewCommentsHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+	postId, err := getStringParam(params, "postId")
+	if err != nil {
+		return "", err
+	}
+	return zanao.GetComments(postId), nil
+}
+
+type SpeakHandler struct{}
+
+func (h *SpeakHandler) Handle(params map[string]any, sendVoice func(text string)) (string, error) {
+	text, err := getStringParam(params, "text")
+	if err != nil {
+		return "", err
+	}
+	sendVoice(text)
+	return "已成功给用户发送语音，你可以继续回复用户，或者输出一个空格结束", nil
+}
+
+type WebSearchHandler struct{}
+
+func (h *WebSearchHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+	query, err := getStringParam(params, "query")
+	if err != nil {
+		return "", err
+	}
+
+	timeRange := getOptionalStringParam(params, "timeRange")
+	include, _ := params["include"].([]string)
+	exclude, _ := params["exclude"].([]string)
+	count := getIntParam(params, "count", 10)
+
+	result := utils.WebSearch(config.ConfigInstance.TavilyToken, query, timeRange, include, exclude, count)
+	return result, nil
+}
+
+type WebExploreHandler struct{}
+
+func (h *WebExploreHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+	linksInterface, ok := params["links"]
+	if !ok {
+		return "", fmt.Errorf("缺少参数: links")
+	}
+
+	links, err := convertToStringSlice(linksInterface)
+	if err != nil {
+		return "", err
+	}
+
+	result := utils.WebExplore(links, config.ConfigInstance.TavilyToken)
+	return result, nil
+}
+
+type GetCurrentTimeHandler struct{}
+
+func (h *GetCurrentTimeHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+	now := time.Now().Local()
+	return fmt.Sprintf("当前时间是 %d年%d月%d日 %d时%d分", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute()), nil
+}
+
+func getStringParam(params map[string]any, key string) (string, error) {
+	val, ok := params[key].(string)
+	if !ok {
+		return "", fmt.Errorf("参数 %s 类型错误或缺失", key)
+	}
+	return val, nil
+}
+
+func getOptionalStringParam(params map[string]any, key string) *string {
+	if val, ok := params[key].(string); ok {
+		return &val
+	}
+	return nil
+}
+
+func getIntParam(params map[string]any, key string, defaultValue int) int {
+	if val, ok := params[key].(int); ok {
+		return val
+	}
+	return defaultValue
+}
+
+func convertToStringSlice(linksInterface interface{}) ([]string, error) {
+	linksSlice, ok := linksInterface.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("参数 links 格式错误，应为字符串数组")
+	}
+
+	var links []string
+	for _, v := range linksSlice {
+		str, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf("links 数组中包含非字符串元素")
+		}
+		links = append(links, str)
+	}
+	return links, nil
 }

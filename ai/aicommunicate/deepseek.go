@@ -44,6 +44,7 @@ func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeek
 	tools.AddFunction(MakeFunctionCallTools("viewComments", "浏览校园集市论坛指定帖子的评论", WithParams("postId", "帖子ID", "string", true)))
 	tools.AddFunction(MakeFunctionCallTools("viewPost", "查看校园集市论坛某个帖子详情", WithParams("postId", "帖子ID", "string", true)))
 	tools.AddFunction(MakeFunctionCallTools("speak", "向用户发送一段不超过60s的语音", WithParams("text", "要发送的语音内容", "string", true)))
+	tools.AddFunction(MakeFunctionCallTools("getCurrentTime", "获取当前时间"))
 
 	return &DeepSeekAIBot_v3{
 		messageChain: []*Message{
@@ -119,14 +120,11 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 			},
 		}
 	}
-
 	deepseek.messageChain = append(deepseek.messageChain, &Message{
 		Role:    "user",
 		Content: question,
 	})
-
 	var back []*AiAnswer
-
 	for {
 		answer, err := request(
 			deepseek.messageChain,
@@ -138,7 +136,6 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 			log.Println("Request failed:", err)
 			return nil
 		}
-
 		choice := answer.Choices[0]
 		toolCalls := choice.Message.ToolCalls
 		if len(toolCalls) != 0 {
@@ -153,24 +150,10 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 					Response: choice.Message.Content,
 				})
 			}
-			for _, toolCall := range toolCalls {
-				var paramMap map[string]any
-				if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &paramMap); err != nil {
-					log.Println("Unmarshal tool call args failed:", err)
-					return nil
-				}
-				callResult, err := functioncall.CallFunction(toolCall.Function.Name, paramMap, deepseek.sendVoidce)
-				if err != nil {
-					log.Println("CallFunction failed:", err)
-					return nil
-				}
-				deepseek.messageChain = append(deepseek.messageChain,
-					&Message{
-						Role:       "tool",
-						Content:    callResult,
-						ToolCallId: toolCall.Id,
-					},
-				)
+			err = RangeTool(&toolCalls, deepseek)
+			if err != nil {
+				log.Println("error on range function call")
+				return nil
 			}
 			continue
 		}
@@ -186,4 +169,27 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 		break
 	}
 	return back
+}
+
+func RangeTool(toolCalls *[]ToolCall, deepseek *DeepSeekAIBot_v3) error {
+	for _, toolCall := range *toolCalls {
+		var paramMap map[string]any
+		if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &paramMap); err != nil {
+			log.Println("Unmarshal tool call args failed:", err)
+			return err
+		}
+		callResult, err := functioncall.CallFunction(toolCall.Function.Name, paramMap, deepseek.sendVoidce)
+		if err != nil {
+			log.Println("CallFunction failed:", err)
+			return err
+		}
+		deepseek.messageChain = append(deepseek.messageChain,
+			&Message{
+				Role:       "tool",
+				Content:    callResult,
+				ToolCallId: toolCall.Id,
+			},
+		)
+	}
+	return nil
 }
