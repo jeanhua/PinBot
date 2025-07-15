@@ -39,18 +39,19 @@ type FunctionCallTool struct {
 }
 
 type CommonResponseBody struct {
-	Id      string `json:"id"`
-	Choices []struct {
-		Message struct {
-			Role             string     `json:"role"`
-			Content          string     `json:"content"`
-			ReasoningContent string     `json:"reasoning_content"`
-			ToolCalls        []ToolCall `json:"tool_calls"`
-		} `json:"message"`
-		FinishReason string `json:"finish_reason"`
-	} `json:"choices"`
+	Id      string   `json:"id"`
+	Choices []Choice `json:"choices"`
 }
 
+type Choice struct {
+	Message struct {
+		Role             string     `json:"role"`
+		Content          string     `json:"content"`
+		ReasoningContent string     `json:"reasoning_content"`
+		ToolCalls        []ToolCall `json:"tool_calls"`
+	} `json:"message"`
+	FinishReason string `json:"finish_reason"`
+}
 type ToolCall struct {
 	Id       string `json:"id"`
 	Function struct {

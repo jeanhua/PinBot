@@ -193,6 +193,11 @@ func (mc *GroupChain) build() []byte {
 	return result
 }
 
+const (
+	UnexpectCode  = "unexpected status code: %d"
+	jsonFormatStr = "application/json"
+)
+
 func SendMessage(chain MessageChain) (*model.Response, error) {
 	data := chain.build()
 	if data == nil {
@@ -204,14 +209,14 @@ func SendMessage(chain MessageChain) (*model.Response, error) {
 		url = ServerHost + "/send_group_msg"
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+	resp, err := http.Post(url, jsonFormatStr, bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf(UnexpectCode, resp.StatusCode)
 	}
 	back := &model.Response{}
 	bodyData, err := io.ReadAll(resp.Body)
@@ -231,13 +236,13 @@ func (msg *AIMessageData) Send() error {
 		return err
 	}
 	url := ServerHost + "/send_group_ai_record"
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+	resp, err := http.Post(url, jsonFormatStr, bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return fmt.Errorf(UnexpectCode, resp.StatusCode)
 	}
 	return nil
 }
@@ -248,13 +253,13 @@ func (msg *GroupForwardChain) Send() error {
 		return err
 	}
 	url := ServerHost + "/send_group_forward_msg"
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+	resp, err := http.Post(url, jsonFormatStr, bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return fmt.Errorf(UnexpectCode, resp.StatusCode)
 	}
 	return nil
 }

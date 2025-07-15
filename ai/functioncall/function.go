@@ -139,7 +139,7 @@ type GetCurrentTimeHandler struct{}
 
 func (h *GetCurrentTimeHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
 	now := time.Now().Local()
-	return fmt.Sprintf("当前时间是 %d年%d月%d日 %d时%d分", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute()), nil
+	return fmt.Sprintf("当前时间是 %d年%d月%d日 %d时%d分 %s", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Weekday().String()), nil
 }
 
 func getStringParam(params map[string]any, key string) (string, error) {

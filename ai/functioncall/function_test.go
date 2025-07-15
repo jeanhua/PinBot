@@ -8,6 +8,6 @@ import (
 
 func TestDate(t *testing.T) {
 	now := time.Now().Local()
-	s := fmt.Sprintf("当前时间是 %d年%d月%d日 %d时%d分", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute())
+	s := fmt.Sprintf("当前时间是 %d年%d月%d日 %d时%d分 %s", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Weekday().String())
 	fmt.Println(s)
 }
