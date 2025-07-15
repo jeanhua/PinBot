@@ -54,7 +54,7 @@ func CallFunction(name string, param map[string]any, sendVoice func(text string)
 		text, ok := param["text"].(string)
 		if ok {
 			sendVoice(text)
-			return "已成功给用户发送语音", nil
+			return "已成功给用户发送语音，你可以继续回复用户，或者输出一个空格结束", nil
 		} else {
 			return "", fmt.Errorf(paramError)
 		}

@@ -16,13 +16,11 @@ friend:
 
 # AI系统预设提示词
 ai_prompt: "你是一个知心小姐姐，活泼有点小傲娇，不要使用markdown"
-# AI functionCall 连续最大次数
-functionCall_maxC: 6
 
 # 赞噢校园集市token
 zanao_token: # 集市token 抓包请求头中的 X-Sc-Od
 
-siliconflow_token: # 智谱AI token
+siliconflow_token: # 硅基流动token
 
 tavilyToken: # tavily api token
 
@@ -30,6 +28,5 @@ tavilyToken: # tavily api token
 help_words:
   group: | 
     @我聊天哦 #新对话 可以创建新对话
-    @我发送 /enable(disable) AI语音 -> 开关AI语音
   friend: |
-    @我发送 清除记录 可以清除聊天记录哦
+    @我发送 #新对话 可以创建新对话

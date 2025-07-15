@@ -95,7 +95,7 @@ func onGroupMessage(msg model.GroupMessage) {
 	replys := deepseek.Ask(text)
 	for _, reply := range replys {
 		if strings.TrimSpace(reply.Response) == "" {
-			return
+			continue
 		}
 
 		if reply == nil {
