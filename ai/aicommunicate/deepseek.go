@@ -105,6 +105,8 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 	// 检查是否需要重置对话
 	if strings.Contains(question, "#新对话") {
 		deepseek.resetConversation()
+	} else {
+		deepseek.autoNewCommunication()
 	}
 
 	// 添加用户消息到对话链
@@ -143,6 +145,13 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 	}
 
 	return responses
+}
+
+// 自动新对话
+func (deepseek *DeepSeekAIBot_v3) autoNewCommunication() {
+	if len(deepseek.messageChain) >= 120 {
+		deepseek.messageChain = []*Message{}
+	}
 }
 
 // 重置对话历史
