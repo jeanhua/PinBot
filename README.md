@@ -6,20 +6,25 @@
 ## 🖼️预览
 
 <div align="center">
-  <img src="./README/1.jpg" alt="截图1" width="400" />
-  <img src="./README/2.jpg" alt="截图2" width="400" />
-</div>
 
-<div align="center">
-  <img src="./README/3.png" alt="截图3" width="400" />
-  <img src="./README/4.png" alt="截图4" width="400" />
-</div>
-<div align="center">
-  <img src="./README/5.png" alt="截图5" width="400" />
-  <img src="./README/6.png" alt="截图6" width="400" />
-</div>
-<div align="center">
-  <img src="./README/7.png" alt="截图7" width="400" />
-  <img src="./README/8.png" alt="截图8" width="400" />
-</div>
+![截图1](./README/1.jpg)  
+&nbsp;
+![截图2](./README/2.jpg)  
+&nbsp;
+![截图3](./README/3.png)  
+&nbsp;
+![截图4](./README/4.png)  
+&nbsp;
+![截图5](./README/5.png)  
+&nbsp;
+![截图6](./README/6.png)  
+&nbsp;
+![截图7](./README/7.png)  
+&nbsp;
+![截图8](./README/8.png)  
+&nbsp;
+![截图9](./README/9.png)  
+&nbsp;
+![截图10](./README/10.png)  
 
+</div>
