@@ -150,7 +150,7 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 // 自动新对话
 func (deepseek *DeepSeekAIBot_v3) autoNewCommunication() {
 	if len(deepseek.messageChain) >= 120 {
-		deepseek.messageChain = []*Message{}
+		deepseek.resetConversation()
 	}
 }
 
