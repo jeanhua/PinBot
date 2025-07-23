@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/jeanhua/PinBot/ai/functioncall"
 )
@@ -18,11 +19,12 @@ const (
 )
 
 type DeepSeekAIBot_v3 struct {
-	token        string
-	SystemPrompt string
-	messageChain []*Message
-	tools        []*FunctionCallTool
-	sendVoidce   func(text string)
+	token                  string
+	SystemPrompt           string
+	messageChain           []*Message
+	tools                  []*FunctionCallTool
+	sendVoidce             func(text string)
+	theLastCommunicateTime time.Time
 }
 
 // 创建新的DeepSeek AI V3实例
@@ -34,10 +36,11 @@ func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeek
 				Content: prompt,
 			},
 		},
-		tools:        initFunctionTools(),
-		token:        token,
-		SystemPrompt: prompt,
-		sendVoidce:   sendVoidce,
+		tools:                  initFunctionTools(),
+		token:                  token,
+		SystemPrompt:           prompt,
+		sendVoidce:             sendVoidce,
+		theLastCommunicateTime: time.Now(),
 	}
 }
 
@@ -102,6 +105,10 @@ func initFunctionTools() []*FunctionCallTool {
 
 // Ask 处理用户提问并返回AI的回答
 func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
+	if deepseek.theLastCommunicateTime.Add(time.Hour * 3).Before(time.Now()) {
+		deepseek.resetConversation()
+	}
+	deepseek.theLastCommunicateTime = time.Now()
 	// 检查是否需要重置对话
 	if strings.Contains(question, "#新对话") {
 		deepseek.resetConversation()
