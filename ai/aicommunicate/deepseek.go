@@ -105,20 +105,9 @@ func initFunctionTools() []*FunctionCallTool {
 
 // Ask 处理用户提问并返回AI的回答
 func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
-	if deepseek.theLastCommunicateTime.Add(time.Hour * 3).Before(time.Now()) {
-		deepseek.resetConversation()
-	}
-	deepseek.theLastCommunicateTime = time.Now()
-	// 检查是否需要重置对话
-	if strings.Contains(question, "#新对话") {
-		deepseek.resetConversation()
-	} else {
-		deepseek.autoNewCommunication()
-	}
-
+	deepseek.checkNeedReset(question)
 	// 添加用户消息到对话链
 	deepseek.appendUserMessage(question)
-
 	var responses []*AiAnswer
 
 	for {
@@ -152,6 +141,20 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 	}
 
 	return responses
+}
+
+// 检查是否需要重置对话
+func (deepseek *DeepSeekAIBot_v3) checkNeedReset(question string) {
+	// 三小时自动重置对话
+	if deepseek.theLastCommunicateTime.Add(time.Hour * 3).Before(time.Now()) {
+		deepseek.resetConversation()
+	}
+	deepseek.theLastCommunicateTime = time.Now()
+	if strings.Contains(question, "#新对话") {
+		deepseek.resetConversation()
+	} else {
+		deepseek.autoNewCommunication()
+	}
 }
 
 // 自动新对话

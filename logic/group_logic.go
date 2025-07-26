@@ -11,7 +11,6 @@ import (
 	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
-	"github.com/jeanhua/PinBot/utils"
 )
 
 // 复读机
@@ -28,7 +27,6 @@ func onGroupMessage(msg model.GroupMessage) {
 		return
 	}
 
-	utils.LogErr(fmt.Sprintf("[%s]:%s", msg.Sender.Nickname, text))
 	trimText := strings.TrimSpace(text)
 
 	// 处理指令
@@ -43,6 +41,7 @@ func onGroupMessage(msg model.GroupMessage) {
 	}
 
 	// AI聊天处理
+	text = fmt.Sprintf("[%s]: %s", msg.Sender.Nickname, text)
 	handleAIChat(msg, text)
 }
 
@@ -90,7 +89,6 @@ func handleAIChat(msg model.GroupMessage, text string) {
 		return
 	}
 	defer llmLock.Unlock()
-
 	processAIResponse(msg, text)
 }
 
