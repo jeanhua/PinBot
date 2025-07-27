@@ -1,7 +1,15 @@
 package config
 
+import (
+	"log"
+	"os"
+
+	"gopkg.in/yaml.v3"
+)
+
 type ConfigModel struct {
 	Debug            bool   `yaml:"debug"`
+	NapCatServerUrl  string `yaml:"napcatServerUrl"`
 	Admin_id         int    `yaml:"admin_id"`
 	Test_group       int    `yaml:"test_group"`
 	ZanaoToken       string `yaml:"zanao_token"`
@@ -23,4 +31,21 @@ type ConfigModel struct {
 }
 
 // 配置
-var ConfigInstance ConfigModel
+var config ConfigModel
+
+func GetConfig() *ConfigModel {
+	return &config
+}
+
+func LoadConfig() {
+	file, err := os.Open("./config.yaml")
+	if err != nil {
+		log.Fatalf("Failed to open config file: %v", err)
+	}
+	defer file.Close()
+
+	decoder := yaml.NewDecoder(file)
+	if err := decoder.Decode(&config); err != nil {
+		log.Fatalf("Failed to decode config: %v", err)
+	}
+}

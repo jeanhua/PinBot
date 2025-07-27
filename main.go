@@ -1,7 +1,10 @@
 package main
 
-import "github.com/jeanhua/PinBot/logic"
+import (
+	"github.com/jeanhua/PinBot/botcontext"
+)
 
 func main() {
-	logic.Register()
+	bot := &botcontext.BotContext{}
+	bot.Run()
 }

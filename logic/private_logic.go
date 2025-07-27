@@ -58,7 +58,7 @@ func handlePrivateAIChat(msg model.FriendMessage, text string) {
 func sendPrivateBusyResponse(uid int) {
 	chain := messagechain.Friend(uid)
 	chain.Text("正在思考中，不要着急哦")
-	messagechain.SendMessage(chain)
+	chain.Send()
 }
 
 // 处理私聊AI响应
@@ -86,8 +86,8 @@ func getOrCreatePrivateAIModel(uid int) aicommunicate.AiModel {
 	deepseek := aiModelMap[uint(uid)]
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(
-			config.ConfigInstance.AI_Prompt,
-			config.ConfigInstance.SiliconflowToken,
+			config.GetConfig().AI_Prompt,
+			config.GetConfig().SiliconflowToken,
 			func(text string) {
 				sendPrivateMessage(uid, text)
 			},
@@ -101,7 +101,7 @@ func getOrCreatePrivateAIModel(uid int) aicommunicate.AiModel {
 func sendPrivateErrorResponse(uid int) {
 	chain := messagechain.Friend(uid)
 	chain.Text("抱歉，我遇到了一些问题，请稍后再试。")
-	messagechain.SendMessage(chain)
+	chain.Send()
 }
 
 // 发送私聊回复消息
@@ -120,7 +120,7 @@ func sendPrivateReply(uid int, response string) {
 func sendPrivateMessage(uid int, text string) {
 	chain := messagechain.Friend(uid)
 	chain.Text(text)
-	messagechain.SendMessage(chain)
+	chain.Send()
 }
 
 // 发送长私聊消息（分段）

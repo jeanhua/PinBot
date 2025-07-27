@@ -7,7 +7,7 @@ import (
 )
 
 func LogErr(msg string) {
-	dbg := config.ConfigInstance.Debug
+	dbg := config.GetConfig().Debug
 	if dbg {
 		log.Println(msg)
 	}

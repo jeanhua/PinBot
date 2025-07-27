@@ -72,7 +72,7 @@ func handleRepeatFeature(msg model.GroupMessage, text string) {
 	if repeat.count >= 3 && repeat.text == text {
 		chain := messagechain.Group(msg.GroupId)
 		chain.Text(repeat.text)
-		messagechain.SendMessage(chain)
+		chain.Send()
 		repeat.count = -100
 	} else if repeat.text == text {
 		repeat.count++
@@ -98,7 +98,7 @@ func sendBusyResponse(msg model.GroupMessage) {
 	chain.Reply(msg.MessageId)
 	chain.Mention(msg.UserId)
 	chain.Text(" 正在思考中，不要着急哦")
-	messagechain.SendMessage(chain)
+	chain.Send()
 }
 
 // 处理AI响应
@@ -123,8 +123,8 @@ func getOrCreateAIModel(groupId int) aicommunicate.AiModel {
 	deepseek := aiModelMap[uint(groupId)]
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(
-			config.ConfigInstance.AI_Prompt,
-			config.ConfigInstance.SiliconflowToken,
+			config.GetConfig().AI_Prompt,
+			config.GetConfig().SiliconflowToken,
 			func(text string) {
 				aimsg := messagechain.AIMessage(groupId, "lucy-voice-suxinjiejie", text)
 				aimsg.Send()
@@ -141,7 +141,7 @@ func sendErrorResponse(msg model.GroupMessage, uid int) {
 	chain.Reply(msg.MessageId)
 	chain.Mention(int(uid))
 	chain.Text(" 抱歉，我遇到了一些问题，请稍后再试。")
-	messagechain.SendMessage(chain)
+	chain.Send()
 }
 
 // 发送回复消息
@@ -162,24 +162,24 @@ func sendShortReply(msg model.GroupMessage, uid int, response string) {
 	chain.Reply(msg.MessageId)
 	chain.Mention(int(uid))
 	chain.Text(" " + response)
-	messagechain.SendMessage(chain)
+	chain.Send()
 }
 
 // 发送长回复
 func sendLongReply(msg model.GroupMessage, rreply []rune, replyLength int) {
-	forward := messagechain.GroupForward(msg.GroupId, "聊天记录")
+	forward := messagechain.GroupForward(msg.GroupId, "聊天记录", strconv.Itoa(msg.SelfId), "江颦")
 	chain := messagechain.Group(msg.GroupId)
 	chain.Mention(msg.UserId)
-	messagechain.SendMessage(chain)
+	chain.Send()
 
 	for i := 0; i <= replyLength/500; i++ {
 		start := i * 500
 		end := (i + 1) * 500
 
 		if end < replyLength {
-			forward.Text(string(rreply[start:end]), msg.SelfId, "江颦")
+			forward.Text(string(rreply[start:end]))
 		} else if start < replyLength {
-			forward.Text(string(rreply[start:]), msg.SelfId, "江颦")
+			forward.Text(string(rreply[start:]))
 		}
 	}
 

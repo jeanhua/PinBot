@@ -5,14 +5,12 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"sync"
 
 	"github.com/jeanhua/PinBot/ai/aicommunicate"
 	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/model"
-	"gopkg.in/yaml.v3"
 )
 
 // 全局变量
@@ -25,23 +23,9 @@ var (
 
 // Register 初始化并启动HTTP服务
 func Register() {
-	loadConfig()
+	config.LoadConfig()
 	initAIModelMap()
 	startHTTPServer()
-}
-
-// loadConfig 加载配置文件
-func loadConfig() {
-	file, err := os.Open("./config.yaml")
-	if err != nil {
-		log.Fatalf("Failed to open config file: %v", err)
-	}
-	defer file.Close()
-
-	decoder := yaml.NewDecoder(file)
-	if err := decoder.Decode(&config.ConfigInstance); err != nil {
-		log.Fatalf("Failed to decode config: %v", err)
-	}
 }
 
 // initAIModelMap 初始化AI模型映射
@@ -149,7 +133,7 @@ func handleGroupMessage(message []byte) {
 
 // 检查好友是否在排除列表中
 func isExcludedFriend(userId int) bool {
-	for _, uin := range config.ConfigInstance.Friend.Exclude {
+	for _, uin := range config.GetConfig().Friend.Exclude {
 		if uin == strconv.Itoa(userId) {
 			return true
 		}
@@ -159,7 +143,7 @@ func isExcludedFriend(userId int) bool {
 
 // 检查好友是否在包含列表中
 func isIncludedFriend(userId int) bool {
-	for _, uin := range config.ConfigInstance.Friend.Include {
+	for _, uin := range config.GetConfig().Friend.Include {
 		if uin == "all" || uin == strconv.Itoa(userId) {
 			return true
 		}
@@ -169,7 +153,7 @@ func isIncludedFriend(userId int) bool {
 
 // 检查群组是否在排除列表中
 func isExcludedGroup(groupId int) bool {
-	for _, uin := range config.ConfigInstance.Group.Exclude {
+	for _, uin := range config.GetConfig().Group.Exclude {
 		if uin == strconv.Itoa(groupId) {
 			return true
 		}
@@ -179,7 +163,7 @@ func isExcludedGroup(groupId int) bool {
 
 // 检查群组是否在包含列表中
 func isIncludedGroup(groupId int) bool {
-	for _, uin := range config.ConfigInstance.Group.Include {
+	for _, uin := range config.GetConfig().Group.Include {
 		if uin == "all" || uin == strconv.Itoa(groupId) {
 			return true
 		}

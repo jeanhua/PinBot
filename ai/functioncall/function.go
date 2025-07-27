@@ -114,7 +114,7 @@ func (h *WebSearchHandler) Handle(params map[string]any, _ func(text string)) (s
 	exclude, _ := params["exclude"].([]string)
 	count := getIntParam(params, "count", 10)
 
-	result := utils.WebSearch(config.ConfigInstance.TavilyToken, query, timeRange, include, exclude, count)
+	result := utils.WebSearch(config.GetConfig().TavilyToken, query, timeRange, include, exclude, count)
 	return result, nil
 }
 
@@ -131,7 +131,7 @@ func (h *WebExploreHandler) Handle(params map[string]any, _ func(text string)) (
 		return "", err
 	}
 
-	result := utils.WebExplore(links, config.ConfigInstance.TavilyToken)
+	result := utils.WebExplore(links, config.GetConfig().TavilyToken)
 	return result, nil
 }
 

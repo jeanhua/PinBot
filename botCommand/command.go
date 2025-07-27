@@ -15,8 +15,8 @@ func DealGroupCommand(com string, msg *model.GroupMessage) bool {
 		chain := messagechain.Group(msg.GroupId)
 		chain.Reply(msg.MessageId)
 		chain.Mention(msg.UserId)
-		chain.Text(config.ConfigInstance.HelpWords.Group)
-		messagechain.SendMessage(chain)
+		chain.Text(config.GetConfig().HelpWords.Group)
+		chain.Send()
 		return true
 	}
 	return false
@@ -27,8 +27,8 @@ func DealFriendCommand(com string, msg *model.FriendMessage) bool {
 	switch com {
 	case "/help", "/帮助":
 		chain := messagechain.Friend(msg.UserId)
-		chain.Text(config.ConfigInstance.HelpWords.Friend)
-		messagechain.SendMessage(chain)
+		chain.Text(config.GetConfig().HelpWords.Friend)
+		chain.Send()
 		return true
 	default:
 		return false
