@@ -1,11 +1,9 @@
-package logic
+package botcontext
 
 import (
 	"encoding/json"
-	"io"
+	"fmt"
 	"log"
-	"net/http"
-	"strconv"
 	"sync"
 
 	"github.com/jeanhua/PinBot/ai/aicommunicate"
@@ -21,49 +19,22 @@ var (
 	aiModelMap = make(map[uint]aicommunicate.AiModel)
 )
 
-// Register 初始化并启动HTTP服务
-func Register() {
-	config.LoadConfig()
-	initAIModelMap()
-	startHTTPServer()
-}
-
 // initAIModelMap 初始化AI模型映射
-func initAIModelMap() {
+func InitAIModelMap() {
 	aiModelMap = make(map[uint]aicommunicate.AiModel)
 }
 
-// startHTTPServer 启动HTTP服务器
-func startHTTPServer() {
-	http.HandleFunc("/Pinbot", Handler)
-	log.Println("Server starting on http://localhost:7823...")
-	log.Fatal(http.ListenAndServe(":7823", nil))
-}
-
-// Handler 处理HTTP请求
-func Handler(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Printf("Error reading request body: %v", err)
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-
-	handleMessage(body)
-}
-
 // 处理接收到的消息
-func handleMessage(message []byte) {
+func HandleMessage(message []byte, bot *BotContext) {
 	basicMsg, err := parseBasicMessage(message)
 	if err != nil || basicMsg.PostType != "message" {
 		return
 	}
 
 	if isFriendMessage(message) {
-		handleFriendMessage(message)
+		handleFriendMessage(message, bot)
 	} else if isGroupMessage(message) {
-		handleGroupMessage(message)
+		handleGroupMessage(message, bot)
 	}
 }
 
@@ -98,7 +69,7 @@ func isGroupMessage(message []byte) bool {
 }
 
 // 处理好友消息
-func handleFriendMessage(message []byte) {
+func handleFriendMessage(message []byte, bot *BotContext) {
 	friendMsg := model.FriendMessage{}
 	if err := json.Unmarshal(message, &friendMsg); err != nil {
 		log.Printf("Error parsing friend message: %v", err)
@@ -110,12 +81,12 @@ func handleFriendMessage(message []byte) {
 	}
 
 	if isIncludedFriend(friendMsg.UserId) {
-		onPrivateMessage(friendMsg)
+		bot.onPrivateMessage(&friendMsg)
 	}
 }
 
 // 处理群组消息
-func handleGroupMessage(message []byte) {
+func handleGroupMessage(message []byte, bot *BotContext) {
 	groupMsg := model.GroupMessage{}
 	if err := json.Unmarshal(message, &groupMsg); err != nil {
 		log.Printf("Error parsing group message: %v", err)
@@ -127,14 +98,14 @@ func handleGroupMessage(message []byte) {
 	}
 
 	if isIncludedGroup(groupMsg.GroupId) {
-		onGroupMessage(groupMsg)
+		bot.onGroupMessage(&groupMsg)
 	}
 }
 
 // 检查好友是否在排除列表中
-func isExcludedFriend(userId int) bool {
+func isExcludedFriend(userId uint) bool {
 	for _, uin := range config.GetConfig().Friend.Exclude {
-		if uin == strconv.Itoa(userId) {
+		if uin == fmt.Sprintf("%d", userId) {
 			return true
 		}
 	}
@@ -142,9 +113,9 @@ func isExcludedFriend(userId int) bool {
 }
 
 // 检查好友是否在包含列表中
-func isIncludedFriend(userId int) bool {
+func isIncludedFriend(userId uint) bool {
 	for _, uin := range config.GetConfig().Friend.Include {
-		if uin == "all" || uin == strconv.Itoa(userId) {
+		if uin == "all" || uin == fmt.Sprintf("%d", userId) {
 			return true
 		}
 	}
@@ -152,9 +123,9 @@ func isIncludedFriend(userId int) bool {
 }
 
 // 检查群组是否在排除列表中
-func isExcludedGroup(groupId int) bool {
+func isExcludedGroup(groupId uint) bool {
 	for _, uin := range config.GetConfig().Group.Exclude {
-		if uin == strconv.Itoa(groupId) {
+		if uin == fmt.Sprintf("%d", groupId) {
 			return true
 		}
 	}
@@ -162,9 +133,9 @@ func isExcludedGroup(groupId int) bool {
 }
 
 // 检查群组是否在包含列表中
-func isIncludedGroup(groupId int) bool {
+func isIncludedGroup(groupId uint) bool {
 	for _, uin := range config.GetConfig().Group.Include {
-		if uin == "all" || uin == strconv.Itoa(groupId) {
+		if uin == "all" || uin == fmt.Sprintf("%d", groupId) {
 			return true
 		}
 	}

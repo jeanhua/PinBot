@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/jeanhua/PinBot/config"
 )
@@ -16,10 +15,10 @@ type GroupChain struct {
 	Message []MessageData `json:"message"`
 }
 
-func Group(groupUin int) *GroupChain {
+func Group(groupUin uint) *GroupChain {
 	return &GroupChain{
 		urlpath: config.GetConfig().NapCatServerUrl + "/send_group_msg",
-		Groupid: strconv.Itoa(groupUin),
+		Groupid: fmt.Sprintf("%d", groupUin),
 		Message: make([]MessageData, 0),
 	}
 }
@@ -34,7 +33,7 @@ func (mc *GroupChain) Text(text string) MessageChain {
 	return mc
 }
 
-func (mc *GroupChain) Reply(id int) MessageChain {
+func (mc *GroupChain) Reply(id uint) MessageChain {
 	mc.Message = append(mc.Message, MessageData{
 		Type: "reply",
 		Data: map[string]interface{}{
@@ -44,11 +43,11 @@ func (mc *GroupChain) Reply(id int) MessageChain {
 	return mc
 }
 
-func (mc *GroupChain) Mention(userid int) MessageChain {
+func (mc *GroupChain) Mention(userid uint) MessageChain {
 	mc.Message = append(mc.Message, MessageData{
 		Type: "at",
 		Data: map[string]interface{}{
-			"qq": strconv.Itoa(userid),
+			"qq": fmt.Sprintf("%d", userid),
 		},
 	})
 	return mc

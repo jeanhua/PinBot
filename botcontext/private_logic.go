@@ -1,7 +1,6 @@
-package logic
+package botcontext
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -14,37 +13,26 @@ import (
 )
 
 // 处理私聊消息
-func onPrivateMessage(msg model.FriendMessage) {
-	text := extractPrivateMessageText(msg)
+func (bot *BotContext) onPrivateMessage(msg *model.FriendMessage) {
+	text := utils.ExtractPrivateMessageText(msg)
 	if strings.TrimSpace(text) == "" {
 		return
 	}
-
-	utils.LogErr(fmt.Sprintf("[%s]:%s", msg.Sender.Nickname, text))
 	trimText := strings.TrimSpace(text)
 
 	// 处理指令
-	if botcommand.DealFriendCommand(trimText, &msg) {
+	if botcommand.DealFriendCommand(trimText, msg) {
 		return
 	}
+
+	bot.Plugins.ExcuteFriend(msg)
 
 	// 处理AI聊天
 	handlePrivateAIChat(msg, text)
 }
 
-// 从私聊消息中提取文本内容
-func extractPrivateMessageText(msg model.FriendMessage) string {
-	text := ""
-	for _, t := range msg.Message {
-		if t.Type == "text" {
-			text += t.Data["text"].(string)
-		}
-	}
-	return text
-}
-
 // 处理私聊AI聊天
-func handlePrivateAIChat(msg model.FriendMessage, text string) {
+func handlePrivateAIChat(msg *model.FriendMessage, text string) {
 	if !llmLock.TryLock() {
 		sendPrivateBusyResponse(msg.UserId)
 		return
@@ -55,14 +43,14 @@ func handlePrivateAIChat(msg model.FriendMessage, text string) {
 }
 
 // 发送忙碌响应
-func sendPrivateBusyResponse(uid int) {
+func sendPrivateBusyResponse(uid uint) {
 	chain := messagechain.Friend(uid)
 	chain.Text("正在思考中，不要着急哦")
 	chain.Send()
 }
 
 // 处理私聊AI响应
-func processPrivateAIResponse(msg model.FriendMessage, text string) {
+func processPrivateAIResponse(msg *model.FriendMessage, text string) {
 	uid := msg.UserId
 	deepseek := getOrCreatePrivateAIModel(uid)
 	replies := deepseek.Ask(text)
@@ -82,7 +70,7 @@ func processPrivateAIResponse(msg model.FriendMessage, text string) {
 }
 
 // 获取或创建私聊AI模型
-func getOrCreatePrivateAIModel(uid int) aicommunicate.AiModel {
+func getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
 	deepseek := aiModelMap[uint(uid)]
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(
@@ -98,14 +86,14 @@ func getOrCreatePrivateAIModel(uid int) aicommunicate.AiModel {
 }
 
 // 发送私聊错误响应
-func sendPrivateErrorResponse(uid int) {
+func sendPrivateErrorResponse(uid uint) {
 	chain := messagechain.Friend(uid)
 	chain.Text("抱歉，我遇到了一些问题，请稍后再试。")
 	chain.Send()
 }
 
 // 发送私聊回复消息
-func sendPrivateReply(uid int, response string) {
+func sendPrivateReply(uid uint, response string) {
 	rreply := []rune(response)
 	replyLength := len(rreply)
 
@@ -117,14 +105,14 @@ func sendPrivateReply(uid int, response string) {
 }
 
 // 发送短私聊消息
-func sendPrivateMessage(uid int, text string) {
+func sendPrivateMessage(uid uint, text string) {
 	chain := messagechain.Friend(uid)
 	chain.Text(text)
 	chain.Send()
 }
 
 // 发送长私聊消息（分段）
-func sendLongPrivateMessage(uid int, rreply []rune, replyLength int) {
+func sendLongPrivateMessage(uid uint, rreply []rune, replyLength int) {
 	for i := 0; i <= replyLength/500; i++ {
 		start := i * 500
 		end := (i + 1) * 500

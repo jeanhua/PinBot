@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/jeanhua/PinBot/config"
 )
@@ -16,10 +15,10 @@ type FriendChain struct {
 	Message []MessageData `json:"message"`
 }
 
-func Friend(friendUin int) *FriendChain {
+func Friend(friendUin uint) *FriendChain {
 	return &FriendChain{
 		urlpath: config.GetConfig().NapCatServerUrl + "/send_private_msg",
-		Userid:  strconv.Itoa(friendUin),
+		Userid:  fmt.Sprintf("%d", friendUin),
 		Message: make([]MessageData, 0),
 	}
 }

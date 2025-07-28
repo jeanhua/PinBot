@@ -13,7 +13,7 @@ type GroupForwardChain struct {
 	urlpath  string
 	userId   string
 	nickname string
-	GroupId  int `json:"group_id"`
+	GroupId  uint `json:"group_id"`
 	Messages []struct {
 		Type string `json:"type"`
 		Data struct {
@@ -28,7 +28,7 @@ type GroupForwardChain struct {
 	Source  string                   `json:"source"`
 }
 
-func GroupForward(groupUin int, source string, userId string, nickname string) *GroupForwardChain {
+func GroupForward(groupUin uint, source string, userId string, nickname string) *GroupForwardChain {
 	return &GroupForwardChain{
 		urlpath:  config.GetConfig().NapCatServerUrl + "/send_group_forward_msg",
 		userId:   userId,

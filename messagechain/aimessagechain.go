@@ -11,12 +11,12 @@ import (
 
 type AIMessageData struct {
 	urlpath   string
-	GroupId   int    `json:"group_id"`
+	GroupId   uint   `json:"group_id"`
 	Character string `json:"character"`
 	Text      string `json:"text"`
 }
 
-func AIMessage(groupUin int, charactor string, text string) *AIMessageData {
+func AIMessage(groupUin uint, charactor string, text string) *AIMessageData {
 	return &AIMessageData{
 		urlpath:   config.GetConfig().NapCatServerUrl + "/send_group_ai_record",
 		GroupId:   groupUin,

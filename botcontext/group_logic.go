@@ -1,8 +1,7 @@
-package logic
+package botcontext
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
+	"github.com/jeanhua/PinBot/utils"
 )
 
 // 复读机
@@ -20,8 +20,8 @@ type repeatTuple struct {
 }
 
 // 处理群组消息
-func onGroupMessage(msg model.GroupMessage) {
-	text, mention := extractMessageContent(msg)
+func (bot *BotContext) onGroupMessage(msg *model.GroupMessage) {
+	text, mention := utils.ExtractMessageContent(msg)
 
 	if strings.TrimSpace(text) == "" {
 		return
@@ -31,7 +31,7 @@ func onGroupMessage(msg model.GroupMessage) {
 
 	// 处理指令
 	if mention {
-		if botcommand.DealGroupCommand(trimText, &msg) {
+		if botcommand.DealGroupCommand(trimText, msg) {
 			return
 		}
 	} else {
@@ -40,32 +40,15 @@ func onGroupMessage(msg model.GroupMessage) {
 		return
 	}
 
+	bot.Plugins.ExcuteGroup(msg)
+
 	// AI聊天处理
 	text = fmt.Sprintf("[%s]: %s", msg.Sender.Nickname, text)
 	handleAIChat(msg, text)
 }
 
-// 从消息中提取文本内容和是否提及机器人
-func extractMessageContent(msg model.GroupMessage) (string, bool) {
-	text := ""
-	mention := false
-
-	for _, t := range msg.Message {
-		switch t.Type {
-		case "text":
-			text += t.Data["text"].(string)
-		case "at":
-			if t.Data["qq"].(string) == strconv.Itoa(msg.SelfId) {
-				mention = true
-			}
-		}
-	}
-
-	return text, mention
-}
-
 // 处理复读机功能
-func handleRepeatFeature(msg model.GroupMessage, text string) {
+func handleRepeatFeature(msg *model.GroupMessage, text string) {
 	repeatLock.Lock()
 	defer repeatLock.Unlock()
 
@@ -83,7 +66,7 @@ func handleRepeatFeature(msg model.GroupMessage, text string) {
 }
 
 // 处理AI聊天
-func handleAIChat(msg model.GroupMessage, text string) {
+func handleAIChat(msg *model.GroupMessage, text string) {
 	if !llmLock.TryLock() {
 		sendBusyResponse(msg)
 		return
@@ -93,7 +76,7 @@ func handleAIChat(msg model.GroupMessage, text string) {
 }
 
 // 发送忙碌响应
-func sendBusyResponse(msg model.GroupMessage) {
+func sendBusyResponse(msg *model.GroupMessage) {
 	chain := messagechain.Group(msg.GroupId)
 	chain.Reply(msg.MessageId)
 	chain.Mention(msg.UserId)
@@ -102,7 +85,7 @@ func sendBusyResponse(msg model.GroupMessage) {
 }
 
 // 处理AI响应
-func processAIResponse(msg model.GroupMessage, text string) {
+func processAIResponse(msg *model.GroupMessage, text string) {
 	uid := msg.UserId
 	deepseek := getOrCreateAIModel(msg.GroupId)
 	replies := deepseek.Ask(text)
@@ -119,7 +102,7 @@ func processAIResponse(msg model.GroupMessage, text string) {
 }
 
 // 获取或创建AI模型
-func getOrCreateAIModel(groupId int) aicommunicate.AiModel {
+func getOrCreateAIModel(groupId uint) aicommunicate.AiModel {
 	deepseek := aiModelMap[uint(groupId)]
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(
@@ -136,16 +119,16 @@ func getOrCreateAIModel(groupId int) aicommunicate.AiModel {
 }
 
 // 发送错误响应
-func sendErrorResponse(msg model.GroupMessage, uid int) {
+func sendErrorResponse(msg *model.GroupMessage, uid uint) {
 	chain := messagechain.Group(msg.GroupId)
 	chain.Reply(msg.MessageId)
-	chain.Mention(int(uid))
+	chain.Mention(uid)
 	chain.Text(" 抱歉，我遇到了一些问题，请稍后再试。")
 	chain.Send()
 }
 
 // 发送回复消息
-func sendReply(msg model.GroupMessage, uid int, response string) {
+func sendReply(msg *model.GroupMessage, uid uint, response string) {
 	rreply := []rune(response)
 	replyLength := len(rreply)
 
@@ -157,17 +140,17 @@ func sendReply(msg model.GroupMessage, uid int, response string) {
 }
 
 // 发送短回复
-func sendShortReply(msg model.GroupMessage, uid int, response string) {
+func sendShortReply(msg *model.GroupMessage, uid uint, response string) {
 	chain := messagechain.Group(msg.GroupId)
 	chain.Reply(msg.MessageId)
-	chain.Mention(int(uid))
+	chain.Mention(uid)
 	chain.Text(" " + response)
 	chain.Send()
 }
 
 // 发送长回复
-func sendLongReply(msg model.GroupMessage, rreply []rune, replyLength int) {
-	forward := messagechain.GroupForward(msg.GroupId, "聊天记录", strconv.Itoa(msg.SelfId), "江颦")
+func sendLongReply(msg *model.GroupMessage, rreply []rune, replyLength int) {
+	forward := messagechain.GroupForward(msg.GroupId, "聊天记录", fmt.Sprintf("%d", msg.SelfId), "江颦")
 	chain := messagechain.Group(msg.GroupId)
 	chain.Mention(msg.UserId)
 	chain.Send()
