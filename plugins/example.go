@@ -1,4 +1,4 @@
-package botplugin
+package plugins
 
 import (
 	"log"

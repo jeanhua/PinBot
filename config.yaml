@@ -1,7 +1,10 @@
 debug: false
 admin_id: 2207739460
 test_group: 703250512
+# napcat listen server
 napcatServerUrl: "http://localhost:7824"
+# local listen: localhost:port/Pinbot , for example: http://localhost:7823/Pinbot
+localListenPort: 7823
 
 # 黑白名单，优先级 exclude > include
 group:
@@ -25,7 +28,7 @@ siliconflow_token: # 硅基流动token
 
 tavilyToken: # tavily api token
 
-# 帮助：
+# 帮助：发送 /help回复的内容
 help_words:
   group: | 
     @我聊天哦 #新对话 可以创建新对话

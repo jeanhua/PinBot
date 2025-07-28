@@ -4,25 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"sync"
 
-	"github.com/jeanhua/PinBot/ai/aicommunicate"
 	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/model"
 )
-
-// 全局变量
-var (
-	repeatLock sync.Mutex
-	repeat     = &repeatTuple{}
-	llmLock    sync.Mutex
-	aiModelMap = make(map[uint]aicommunicate.AiModel)
-)
-
-// initAIModelMap 初始化AI模型映射
-func InitAIModelMap() {
-	aiModelMap = make(map[uint]aicommunicate.AiModel)
-}
 
 // 处理接收到的消息
 func HandleMessage(message []byte, bot *BotContext) {
@@ -30,7 +15,6 @@ func HandleMessage(message []byte, bot *BotContext) {
 	if err != nil || basicMsg.PostType != "message" {
 		return
 	}
-
 	if isFriendMessage(message) {
 		handleFriendMessage(message, bot)
 	} else if isGroupMessage(message) {

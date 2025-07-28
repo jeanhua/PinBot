@@ -1,47 +1,34 @@
 package botcontext
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 
-	"github.com/jeanhua/PinBot/botplugin"
 	"github.com/jeanhua/PinBot/config"
 )
 
-/**------------------------------**/
-/**
-* 插件注册
-**/
-func RegisterPlugin(instance *BotContext) {
-	instance.Plugins.AddFriendPlugin(botplugin.ExampleFriendPlugin)
-	instance.Plugins.AddGroupPlugin(botplugin.ExampleGroupPlugin)
-}
-
-/**------------------------------**/
-
 type BotContext struct {
-	Plugins *botplugin.BotPlugin
+	Plugins *BotPlugin
 }
 
-func (bot *BotContext) NewBot() *BotContext {
+func NewBot() *BotContext {
 	instance := &BotContext{
-		Plugins: &botplugin.BotPlugin{},
+		Plugins: &BotPlugin{},
 	}
-	RegisterPlugin(instance)
 	return instance
 }
 
 func (bot *BotContext) Run() {
 	config.LoadConfig()
-	InitAIModelMap()
 	startHTTPServer(bot)
 }
 
 func startHTTPServer(bot *BotContext) {
 	http.HandleFunc("/Pinbot", bot.handler)
-	log.Println("Server starting on http://localhost:7823...")
-	log.Fatal(http.ListenAndServe(":7823", nil))
+	log.Printf("Server starting on http://localhost:%d...\n", config.GetConfig().LocalListenPort)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.GetConfig().LocalListenPort), nil))
 }
 
 func (bot *BotContext) handler(w http.ResponseWriter, r *http.Request) {

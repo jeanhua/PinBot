@@ -1,4 +1,4 @@
-package botplugin
+package botcontext
 
 import (
 	"github.com/jeanhua/PinBot/model"
