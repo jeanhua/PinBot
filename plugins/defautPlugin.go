@@ -22,7 +22,7 @@ var (
 	repeatMap  = concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]]()
 )
 
-var DefaultPlugin = botcontext.NewPluginContext("default plugin", defaultPluginOnFriend, defaultPluginOnGroup, "系统默认插件")
+var DefaultPlugin = botcontext.NewPluginContext("default plugin", defaultPluginOnFriend, defaultPluginOnGroup, "系统默认插件, AI智能体, 可以聊天，逛校园集市，检索和浏览网页, 群语音聊天等")
 
 func defaultPluginOnFriend(message *model.FriendMessage) bool {
 	text := utils.ExtractPrivateMessageText(message)
