@@ -29,3 +29,7 @@ go.work.sum
 
 # output
 build/
+
+# editor
+.vscode/
+.idea/

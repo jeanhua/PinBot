@@ -39,7 +39,7 @@ func DealFriendCommand(com string, msg *model.FriendMessage) bool {
 		return false
 	case "/plugin", "/plugins", "/插件":
 		pluginLen := len(Plugins)
-		if msg.UserId == config.GetConfig().Admin_id && pluginLen != 0 {
+		if msg.UserId == config.GetConfig().AdminId && pluginLen != 0 {
 			chain := messagechain.Friend(msg.UserId)
 			text := ""
 			for index, p := range Plugins {

@@ -151,7 +151,7 @@ func getOrCreateAIModel(uid uint) aicommunicate.AiModel {
 	deepseek := aiModelMap[uint(uid)]
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(
-			config.GetConfig().AI_Prompt,
+			config.GetConfig().AiPrompt,
 			config.GetConfig().SiliconflowToken,
 			func(text string) {
 				sendPrivateMessage(uid, text)
