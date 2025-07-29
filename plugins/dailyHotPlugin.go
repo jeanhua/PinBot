@@ -26,39 +26,56 @@ func dailyHotOnGroup(message *model.GroupMessage) bool {
 		return true
 	}
 	trimText := strings.TrimSpace(text)
-	if strings.HasPrefix(trimText, "/dailyhot") {
-		sp := strings.Split(trimText, " ")
-		if len(sp) != 2 {
-			utils.SendShortReply(message, message.UserId, "参数数量错误 示例 /dailyhot bilibili")
-			return false
-		}
-		target := sp[1]
-		hot := getDailyHot(target)
-		if hot == nil {
-			utils.SendShortReply(message, message.UserId, "热搜获取失败，请检查参数")
-			return false
-		} else if hot.Code != 200 {
-			utils.SendShortReply(message, message.UserId, "热搜获取失败，请检查热搜服务")
-			return false
-		}
-		responseText := ""
-		dataLen := len(hot.Data)
-		for index, v := range hot.Data {
-			if index != dataLen-1 && index < 9 {
-				responseText += fmt.Sprintf("%d: %s\n%s\n\n", index+1, v.Title, v.Url)
-			} else {
-				responseText += fmt.Sprintf("%d: %s\n%s", index+1, v.Title, v.Url)
-			}
-			if index > 9 {
-				break
-			}
-		}
-		chain := messagechain.Group(message.GroupId)
-		chain.Text(responseText)
-		chain.Send()
+	if !strings.HasPrefix(trimText, "/dailyhot") {
+		return true
+	}
+	target, err := getDailyHotParam(trimText)
+	if err != nil {
+		utils.SendShortReply(message, message.UserId, err.Error())
 		return false
 	}
-	return true
+	if target == "help" {
+		sendDailyHotHelp(message.GroupId)
+		return false
+	}
+	hot := getDailyHot(target)
+	if hot == nil {
+		utils.SendShortReply(message, message.UserId, "热搜获取失败，请检查参数")
+		return false
+	} else if hot.Code != 200 {
+		utils.SendShortReply(message, message.UserId, "热搜获取失败，请检查热搜服务")
+		return false
+	}
+	responseText := ""
+	dataLen := len(hot.Data)
+	for index, v := range hot.Data {
+		if index != dataLen-1 && index < 9 {
+			responseText += fmt.Sprintf("%d: %s\n%s\n\n", index+1, v.Title, v.Url)
+		} else {
+			responseText += fmt.Sprintf("%d: %s\n%s", index+1, v.Title, v.Url)
+		}
+		if index > 9 {
+			break
+		}
+	}
+	chain := messagechain.Group(message.GroupId)
+	chain.Text(responseText)
+	chain.Send()
+	return false
+}
+
+func sendDailyHotHelp(uid uint) {
+	chain := messagechain.Group(uid)
+	chain.LocalImage("./Pluginres/dailyhot/help.png")
+	chain.Send()
+}
+
+func getDailyHotParam(text string) (string, error) {
+	sp := strings.Split(text, " ")
+	if len(sp) != 2 {
+		return "", fmt.Errorf("参数数量错误 示例 /dailyhot bilibili")
+	}
+	return sp[1], nil
 }
 
 type dailyHotMeta struct {

@@ -31,6 +31,6 @@ tavilyToken: # tavily api token
 # 帮助：发送 /help回复的内容
 help_words:
   group: | 
-    @我聊天哦 #新对话 可以创建新对话
+    @我聊天哦, 发送 #新对话 可以创建新对话,发送 /plugin 可以查看插件加载情况
   friend: |
-    @我发送 #新对话 可以创建新对话
+    @我聊天哦, 发送 #新对话 可以创建新对话,发送 /plugin 可以查看插件加载情况

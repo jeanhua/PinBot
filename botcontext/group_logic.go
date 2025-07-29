@@ -1,7 +1,6 @@
 package botcontext
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jeanhua/PinBot/botcommand"
@@ -26,7 +25,4 @@ func (bot *BotContext) onGroupMessage(msg *model.GroupMessage) {
 	}
 
 	bot.Plugins.excuteGroup(msg)
-
-	// AI聊天处理
-	text = fmt.Sprintf("[%s]: %s", msg.Sender.Nickname, text)
 }

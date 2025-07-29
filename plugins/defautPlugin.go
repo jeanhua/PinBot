@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -74,7 +75,7 @@ func sendBusyResponse(msg *model.GroupMessage) {
 func processAIResponse(msg *model.GroupMessage, text string) {
 	uid := msg.UserId
 	deepseek := getOrCreateAIModel(msg.GroupId)
-	replies := deepseek.Ask(text)
+	replies := deepseek.Ask(fmt.Sprintf("[%s]: %s", msg.Sender.Nickname, text))
 	for _, reply := range replies {
 		if strings.TrimSpace(reply.Response) == "" {
 			continue

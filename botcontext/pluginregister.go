@@ -14,6 +14,7 @@ type PluginContext struct {
 	onFriendMsg FriendPluginFunc
 	name        string
 	description string
+	isPublic    bool
 }
 
 func NewPluginContext(name string, onFriend FriendPluginFunc, onGroup GroupPluginFunc, description string) *PluginContext {
@@ -22,7 +23,13 @@ func NewPluginContext(name string, onFriend FriendPluginFunc, onGroup GroupPlugi
 		onGroupMsg:  onGroup,
 		onFriendMsg: onFriend,
 		description: description,
+		isPublic:    true,
 	}
+}
+
+func (p *PluginContext) SetPrivate() *PluginContext {
+	p.isPublic = false
+	return p
 }
 
 type FriendPluginFunc func(message *model.FriendMessage) bool
@@ -51,5 +58,6 @@ func (p *BotPlugin) AddPlugin(plugin *PluginContext) {
 	botcommand.Plugins = append(botcommand.Plugins, botcommand.PluginMeta{
 		Name:        plugin.name,
 		Description: plugin.description,
+		IsPublic:    plugin.isPublic,
 	})
 }
