@@ -16,7 +16,7 @@ type AIMessageData struct {
 	Text      string `json:"text"`
 }
 
-func AIMessage(groupUin uint, charactor string, text string) *AIMessageData {
+func AIMessage(groupUin uint, charactor string, text string) MessageChain {
 	return &AIMessageData{
 		urlpath:   config.GetConfig().NapCatServerUrl + "/send_group_ai_record",
 		GroupId:   groupUin,

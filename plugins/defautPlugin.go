@@ -48,18 +48,18 @@ func defaultPluginOnGroup(message *model.GroupMessage) bool {
 	if !mention {
 		return true
 	}
-	handleAIChat(message, text)
+	handleGroupAIChat(message, text)
 	return false
 }
 
 // 处理AI聊天
-func handleAIChat(msg *model.GroupMessage, text string) {
+func handleGroupAIChat(msg *model.GroupMessage, text string) {
 	if !llmLock.TryLock() {
 		sendBusyResponse(msg)
 		return
 	}
 	defer llmLock.Unlock()
-	processAIResponse(msg, text)
+	processGroupAIResponse(msg, text)
 }
 
 // 发送忙碌响应
@@ -71,11 +71,11 @@ func sendBusyResponse(msg *model.GroupMessage) {
 	chain.Send()
 }
 
-// 处理AI响应
-func processAIResponse(msg *model.GroupMessage, text string) {
+// 处理群AI响应
+func processGroupAIResponse(msg *model.GroupMessage, text string) {
 	uid := msg.UserId
-	deepseek := getOrCreateAIModel(msg.GroupId)
-	replies := deepseek.Ask(fmt.Sprintf("[%s]: %s", msg.Sender.Nickname, text))
+	deepseek := getOrCreateGroupAIModel(msg.GroupId)
+	replies := deepseek.Ask(fmt.Sprintf("[nickname: %s]: %s", msg.Sender.Nickname, text))
 	for _, reply := range replies {
 		if strings.TrimSpace(reply.Response) == "" {
 			continue
@@ -130,7 +130,7 @@ func sendPrivateBusyResponse(uid uint) {
 // 处理私聊AI响应
 func processPrivateAIResponse(msg *model.FriendMessage, text string) {
 	uid := msg.UserId
-	deepseek := getOrCreateAIModel(uid)
+	deepseek := getOrCreatePrivateAIModel(uid)
 	replies := deepseek.Ask(text)
 
 	for _, reply := range replies {
@@ -148,14 +148,31 @@ func processPrivateAIResponse(msg *model.FriendMessage, text string) {
 }
 
 // 获取或创建私聊AI模型
-func getOrCreateAIModel(uid uint) aicommunicate.AiModel {
-	deepseek := aiModelMap[uint(uid)]
+func getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
+	deepseek := aiModelMap[uid]
 	if deepseek == nil {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().SiliconflowToken,
 			func(text string) {
 				sendPrivateMessage(uid, text)
+			},
+		)
+		aiModelMap[uint(uid)] = deepseek
+	}
+	return deepseek
+}
+
+// 获取或创建群AI模型
+func getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
+	deepseek := aiModelMap[uid]
+	if deepseek == nil {
+		deepseek = aicommunicate.NewDeepSeekV3(
+			config.GetConfig().AiPrompt,
+			config.GetConfig().SiliconflowToken,
+			func(text string) {
+				chain := messagechain.AIMessage(uid, "lucy-voice-suxinjiejie", text)
+				chain.Send()
 			},
 		)
 		aiModelMap[uint(uid)] = deepseek
