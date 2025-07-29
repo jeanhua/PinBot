@@ -54,7 +54,7 @@ func dailyHotOnGroup(message *model.GroupMessage) bool {
 		} else {
 			responseText += fmt.Sprintf("%d: %s\n%s", index+1, v.Title, v.Url)
 		}
-		if index > 9 {
+		if index >= 9 {
 			break
 		}
 	}
