@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jeanhua/PinBot/ai/aicommunicate"
+	"github.com/jeanhua/PinBot/botcontext"
 	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/datastructure/concurrent"
 	"github.com/jeanhua/PinBot/datastructure/tuple"
@@ -20,13 +21,15 @@ var (
 	repeatMap  = concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]]()
 )
 
-func DefaultFriendPlugin(message *model.FriendMessage) bool {
+var DefaultPlugin = botcontext.NewPluginContext("default plugin", defaultPluginOnFriend, defaultPluginOnGroup, "系统默认插件")
+
+func defaultPluginOnFriend(message *model.FriendMessage) bool {
 	text := utils.ExtractPrivateMessageText(message)
 	handlePrivateAIChat(message, text)
-	return true
+	return false
 }
 
-func DefaultGroupPlugin(message *model.GroupMessage) bool {
+func defaultPluginOnGroup(message *model.GroupMessage) bool {
 	text, mention := utils.ExtractMessageContent(message)
 	// 复读机
 	repeat := repeatMap.Get(message.GroupId)
@@ -34,7 +37,7 @@ func DefaultGroupPlugin(message *model.GroupMessage) bool {
 		msg := messagechain.Group(message.GroupId).Text(text)
 		msg.Send()
 		repeatMap.Set(message.GroupId, tuple.Of(1, text))
-		return true
+		return false
 	} else if repeat.Second != text {
 		repeatMap.Set(message.GroupId, tuple.Of(1, text))
 	} else {
@@ -45,7 +48,7 @@ func DefaultGroupPlugin(message *model.GroupMessage) bool {
 		return true
 	}
 	handleAIChat(message, text)
-	return true
+	return false
 }
 
 // 处理AI聊天

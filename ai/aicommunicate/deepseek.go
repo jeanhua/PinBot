@@ -21,8 +21,8 @@ const (
 type DeepSeekAIBot_v3 struct {
 	token                  string
 	SystemPrompt           string
-	messageChain           []*Message
-	tools                  []*FunctionCallTool
+	messageChain           []*message
+	tools                  []*functionCallTool
 	sendVoidce             func(text string)
 	theLastCommunicateTime time.Time
 }
@@ -30,7 +30,7 @@ type DeepSeekAIBot_v3 struct {
 // 创建新的DeepSeek AI V3实例
 func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeekAIBot_v3 {
 	return &DeepSeekAIBot_v3{
-		messageChain: []*Message{
+		messageChain: []*message{
 			{
 				Role:    "system",
 				Content: prompt,
@@ -45,60 +45,60 @@ func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeek
 }
 
 // 初始化所有可用的功能工具
-func initFunctionTools() []*FunctionCallTool {
-	tools := FunctionCall{}
+func initFunctionTools() []*functionCallTool {
+	tools := functionCall{}
 	const strArry = "array<string>"
 
 	// 定义所有工具函数
-	tools.AddFunction(MakeFunctionCallTools(
+	tools.AddFunction(makeFunctionCallTools(
 		"webSearch",
 		"执行网络搜索，用于获取互联网相关信息",
-		WithParams("query", "搜索查询内容", "string", true),
-		WithParams("timeRange", "限制搜索结果的时间范围(可选)(day,week,month,year)", "string", false),
-		WithParams("include", "限定搜索结果必须包含的域名列表(可选)", strArry, false),
-		WithParams("exclude", "排除特定域名的搜索结果(可选)", strArry, false),
-		WithParams("count", "返回的最大搜索结果数量(可选)", "int", false),
+		withParams("query", "搜索查询内容", "string", true),
+		withParams("timeRange", "限制搜索结果的时间范围(可选)(day,week,month,year)", "string", false),
+		withParams("include", "限定搜索结果必须包含的域名列表(可选)", strArry, false),
+		withParams("exclude", "排除特定域名的搜索结果(可选)", strArry, false),
+		withParams("count", "返回的最大搜索结果数量(可选)", "int", false),
 	))
 
-	tools.AddFunction(MakeFunctionCallTools(
+	tools.AddFunction(makeFunctionCallTools(
 		"webExplore",
 		"打开某些网页链接进行网页浏览",
-		WithParams("links", "要打开的网页链接数组", strArry, true),
+		withParams("links", "要打开的网页链接数组", strArry, true),
 	))
 
-	tools.AddFunction(MakeFunctionCallTools(
+	tools.AddFunction(makeFunctionCallTools(
 		"browseHomepage",
 		"浏览校园集市论坛主页帖子",
-		WithParams("fromTime", "时间戳,该时间戳前的10条帖子,输入0则表示最新的10条帖子", "string", true),
+		withParams("fromTime", "时间戳,该时间戳前的10条帖子,输入0则表示最新的10条帖子", "string", true),
 	))
 
-	tools.AddFunction(MakeFunctionCallTools("browseHot", "浏览校园集市论坛热门帖子"))
+	tools.AddFunction(makeFunctionCallTools("browseHot", "浏览校园集市论坛热门帖子"))
 
-	tools.AddFunction(MakeFunctionCallTools(
+	tools.AddFunction(makeFunctionCallTools(
 		"searchPost",
 		"搜索校园集市论坛帖子",
-		WithParams("keywords", "搜索关键词", "string", true),
+		withParams("keywords", "搜索关键词", "string", true),
 	))
 
-	tools.AddFunction(MakeFunctionCallTools(
+	tools.AddFunction(makeFunctionCallTools(
 		"viewComments",
 		"浏览校园集市论坛指定帖子的评论",
-		WithParams("postId", "帖子ID", "string", true),
+		withParams("postId", "帖子ID", "string", true),
 	))
 
-	tools.AddFunction(MakeFunctionCallTools(
+	tools.AddFunction(makeFunctionCallTools(
 		"viewPost",
 		"查看校园集市论坛某个帖子详情",
-		WithParams("postId", "帖子ID", "string", true),
+		withParams("postId", "帖子ID", "string", true),
 	))
 
-	tools.AddFunction(MakeFunctionCallTools(
+	tools.AddFunction(makeFunctionCallTools(
 		"speak",
 		"向用户发送一段不超过60s的语音",
-		WithParams("text", "要发送的语音内容", "string", true),
+		withParams("text", "要发送的语音内容", "string", true),
 	))
 
-	tools.AddFunction(MakeFunctionCallTools("getCurrentTime", "获取当前时间"))
+	tools.AddFunction(makeFunctionCallTools("getCurrentTime", "获取当前时间"))
 
 	return tools
 }
@@ -166,7 +166,7 @@ func (deepseek *DeepSeekAIBot_v3) autoNewCommunication() {
 
 // 重置对话历史
 func (deepseek *DeepSeekAIBot_v3) resetConversation() {
-	deepseek.messageChain = []*Message{
+	deepseek.messageChain = []*message{
 		{
 			Role:    "system",
 			Content: deepseek.SystemPrompt,
@@ -176,7 +176,7 @@ func (deepseek *DeepSeekAIBot_v3) resetConversation() {
 
 // 添加用户消息到对话链
 func (deepseek *DeepSeekAIBot_v3) appendUserMessage(content string) {
-	deepseek.messageChain = append(deepseek.messageChain, &Message{
+	deepseek.messageChain = append(deepseek.messageChain, &message{
 		Role:    "user",
 		Content: content,
 	})
@@ -184,14 +184,14 @@ func (deepseek *DeepSeekAIBot_v3) appendUserMessage(content string) {
 
 // 添加助手消息到对话链
 func (deepseek *DeepSeekAIBot_v3) appendAssistantMessage(content string) {
-	deepseek.messageChain = append(deepseek.messageChain, &Message{
+	deepseek.messageChain = append(deepseek.messageChain, &message{
 		Role:    "assistant",
 		Content: content,
 	})
 }
 
 // 处理工具调用
-func (deepseek *DeepSeekAIBot_v3) handleToolCalls(choice *Choice, responses []*AiAnswer) []*AiAnswer {
+func (deepseek *DeepSeekAIBot_v3) handleToolCalls(choice *choice, responses []*AiAnswer) []*AiAnswer {
 	// 如果有内容先添加内容响应
 	if strings.TrimSpace(choice.Message.Content) != "" {
 		responses = append(responses, &AiAnswer{
@@ -210,7 +210,7 @@ func (deepseek *DeepSeekAIBot_v3) handleToolCalls(choice *Choice, responses []*A
 }
 
 // 执行工具调用
-func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []ToolCall) error {
+func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []toolCall) error {
 	for _, toolCall := range toolCalls {
 		var paramMap map[string]any
 		if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &paramMap); err != nil {
@@ -231,7 +231,7 @@ func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []ToolCall) error {
 
 // 添加工具响应到对话链
 func (deepseek *DeepSeekAIBot_v3) appendToolResponse(toolCallId, content string) {
-	deepseek.messageChain = append(deepseek.messageChain, &Message{
+	deepseek.messageChain = append(deepseek.messageChain, &message{
 		Role:       "tool",
 		Content:    content,
 		ToolCallId: toolCallId,
@@ -239,9 +239,9 @@ func (deepseek *DeepSeekAIBot_v3) appendToolResponse(toolCallId, content string)
 }
 
 // 发送请求到AI接口
-func request(msg []*Message, model, token string, tools []*FunctionCallTool) (*CommonResponseBody, error) {
+func request(msg []*message, model, token string, tools []*functionCallTool) (*commonResponseBody, error) {
 	debug := false
-	body := &CommonRequestBody{
+	body := &commonRequestBody{
 		Model:    model,
 		Messages: msg,
 		Stream:   false,
@@ -286,7 +286,7 @@ func request(msg []*Message, model, token string, tools []*FunctionCallTool) (*C
 		log.Println("Response body:", string(respBytes))
 	}
 
-	result := &CommonResponseBody{}
+	result := &commonResponseBody{}
 	if err := json.Unmarshal(respBytes, result); err != nil {
 		return nil, fmt.Errorf("unmarshal response failed: %w", err)
 	}

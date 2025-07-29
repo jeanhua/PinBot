@@ -20,12 +20,12 @@ func (bot *BotContext) onGroupMessage(msg *model.GroupMessage) {
 
 	// 处理指令
 	if mention {
-		if botcommand.DealGroupCommand(trimText, msg) {
+		if !botcommand.DealGroupCommand(trimText, msg) {
 			return
 		}
 	}
 
-	bot.Plugins.ExcuteGroup(msg)
+	bot.Plugins.excuteGroup(msg)
 
 	// AI聊天处理
 	text = fmt.Sprintf("[%s]: %s", msg.Sender.Nickname, text)

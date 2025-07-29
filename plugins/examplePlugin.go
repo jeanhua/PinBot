@@ -3,15 +3,18 @@ package plugins
 import (
 	"log"
 
+	"github.com/jeanhua/PinBot/botcontext"
 	"github.com/jeanhua/PinBot/model"
 	"github.com/jeanhua/PinBot/utils"
 )
 
-func ExampleFriendPlugin(message *model.FriendMessage) bool {
+var ExamplePlugin = botcontext.NewPluginContext("example plugin", examplePluginOnFriend, examplePluginOnGroup, "示例插件")
+
+func examplePluginOnFriend(message *model.FriendMessage) bool {
 	log.Printf("[私聊消息](%s):%s\n", message.Sender.Nickname, utils.ExtractPrivateMessageText(message))
 	return true
 }
-func ExampleGroupPlugin(message *model.GroupMessage) bool {
+func examplePluginOnGroup(message *model.GroupMessage) bool {
 	text, _ := utils.ExtractMessageContent(message)
 	log.Printf("[群聊消息](%s):%s\n", message.Sender.Nickname, text)
 	return true

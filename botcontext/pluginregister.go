@@ -1,39 +1,55 @@
 package botcontext
 
 import (
+	"github.com/jeanhua/PinBot/botcommand"
 	"github.com/jeanhua/PinBot/model"
 )
 
 type BotPlugin struct {
-	onFriendMsg []IFriendPlugin
-	onGroupMsg  []IGroupPlugin
+	plugins []*PluginContext
 }
 
-type IFriendPlugin func(message *model.FriendMessage) bool
-type IGroupPlugin func(message *model.GroupMessage) bool
+type PluginContext struct {
+	onGroupMsg  GroupPluginFunc
+	onFriendMsg FriendPluginFunc
+	name        string
+	description string
+}
 
-func (plugin *BotPlugin) ExcuteFriend(message *model.FriendMessage) {
-	for _, f := range plugin.onFriendMsg {
-		runNext := f(message)
+func NewPluginContext(name string, onFriend FriendPluginFunc, onGroup GroupPluginFunc, description string) *PluginContext {
+	return &PluginContext{
+		name:        name,
+		onGroupMsg:  onGroup,
+		onFriendMsg: onFriend,
+		description: description,
+	}
+}
+
+type FriendPluginFunc func(message *model.FriendMessage) bool
+type GroupPluginFunc func(message *model.GroupMessage) bool
+
+func (plugin *BotPlugin) excuteFriend(message *model.FriendMessage) {
+	for _, f := range plugin.plugins {
+		runNext := f.onFriendMsg(message)
 		if !runNext {
 			break
 		}
 	}
 }
 
-func (plugin *BotPlugin) ExcuteGroup(message *model.GroupMessage) {
-	for _, f := range plugin.onGroupMsg {
-		runNext := f(message)
+func (plugin *BotPlugin) excuteGroup(message *model.GroupMessage) {
+	for _, f := range plugin.plugins {
+		runNext := f.onGroupMsg(message)
 		if !runNext {
 			break
 		}
 	}
 }
 
-func (plugin *BotPlugin) AddFriendPlugin(runner IFriendPlugin) {
-	plugin.onFriendMsg = append(plugin.onFriendMsg, runner)
-}
-
-func (plugin *BotPlugin) AddGroupPlugin(runner IGroupPlugin) {
-	plugin.onGroupMsg = append(plugin.onGroupMsg, runner)
+func (p *BotPlugin) AddPlugin(plugin *PluginContext) {
+	p.plugins = append(p.plugins, plugin)
+	botcommand.Plugins = append(botcommand.Plugins, botcommand.PluginMeta{
+		Name:        plugin.name,
+		Description: plugin.description,
+	})
 }

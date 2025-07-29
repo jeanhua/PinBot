@@ -10,9 +10,9 @@ import (
 type ConfigModel struct {
 	Debug            bool   `yaml:"debug"`
 	NapCatServerUrl  string `yaml:"napcatServerUrl"`
-	LocalListenPort  int    `yaml:"localListenPort"`
-	Admin_id         int    `yaml:"admin_id"`
-	Test_group       int    `yaml:"test_group"`
+	LocalListenPort  uint   `yaml:"localListenPort"`
+	Admin_id         uint   `yaml:"admin_id"`
+	Test_group       uint   `yaml:"test_group"`
 	ZanaoToken       string `yaml:"zanao_token"`
 	SiliconflowToken string `yaml:"siliconflow_token"`
 	TavilyToken      string `yaml:"tavilyToken"`

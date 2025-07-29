@@ -16,13 +16,16 @@ func main() {
 * 插件注册
 **/
 func registerPlugin(instance *botcontext.BotContext) {
-	// 示例插件：打印消息
-	instance.Plugins.AddFriendPlugin(plugins.ExampleFriendPlugin)
-	instance.Plugins.AddGroupPlugin(plugins.ExampleGroupPlugin)
-	// 系统默认插件，包含AI聊天
-	instance.Plugins.AddFriendPlugin(plugins.DefaultFriendPlugin)
-	instance.Plugins.AddGroupPlugin(plugins.DefaultGroupPlugin)
+	/* -----------在这里注册插件----------- */
+	//
+	instance.Plugins.AddPlugin(plugins.DailyHotPlugin)
+	//
+	/* -----------在上面注册插件----------- */
 
+	// 示例插件：打印消息
+	instance.Plugins.AddPlugin(plugins.ExamplePlugin)
+	// 系统默认插件，包含AI聊天
+	instance.Plugins.AddPlugin(plugins.DefaultPlugin)
 }
 
 /**------------------------------**/

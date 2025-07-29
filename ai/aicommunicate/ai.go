@@ -8,20 +8,20 @@ type AiAnswer struct {
 	Response string `json:"response"`
 }
 
-type CommonRequestBody struct {
+type commonRequestBody struct {
 	Model           string              `json:"model"`
-	Messages        []*Message          `json:"messages"`
+	Messages        []*message          `json:"messages"`
 	Stream          bool                `json:"stream"`
 	Enable_thinking bool                `json:"enable_thinking"`
-	Tools           []*FunctionCallTool `json:"tools"`
+	Tools           []*functionCallTool `json:"tools"`
 }
 
-type Message struct {
+type message struct {
 	Role       string `json:"role"`
 	Content    string `json:"content"`
 	ToolCallId string `json:"tool_call_id"`
 }
-type FunctionCallTool struct {
+type functionCallTool struct {
 	Type     string `json:"type"` // function
 	Function struct {
 		Name        string `json:"name"`
@@ -38,21 +38,21 @@ type FunctionCallTool struct {
 	} `json:"function"`
 }
 
-type CommonResponseBody struct {
+type commonResponseBody struct {
 	Id      string   `json:"id"`
-	Choices []Choice `json:"choices"`
+	Choices []choice `json:"choices"`
 }
 
-type Choice struct {
+type choice struct {
 	Message struct {
 		Role             string     `json:"role"`
 		Content          string     `json:"content"`
 		ReasoningContent string     `json:"reasoning_content"`
-		ToolCalls        []ToolCall `json:"tool_calls"`
+		ToolCalls        []toolCall `json:"tool_calls"`
 	} `json:"message"`
 	FinishReason string `json:"finish_reason"`
 }
-type ToolCall struct {
+type toolCall struct {
 	Id       string `json:"id"`
 	Function struct {
 		Name      string `json:"name"`
@@ -60,7 +60,7 @@ type ToolCall struct {
 	} `json:"function"`
 }
 
-func MakeFunctionCallTools(funcName, description string, param ...ParamInfo) *FunctionCallTool {
+func makeFunctionCallTools(funcName, description string, param ...paramInfo) *functionCallTool {
 	var types map[string]struct {
 		Type        string "json:\"type\""
 		Description string "json:\"description\""
@@ -81,7 +81,7 @@ func MakeFunctionCallTools(funcName, description string, param ...ParamInfo) *Fu
 			requires = append(requires, p.Name)
 		}
 	}
-	return &FunctionCallTool{
+	return &functionCallTool{
 		Type: "function",
 		Function: struct {
 			Name        string "json:\"name\""
@@ -114,14 +114,14 @@ func MakeFunctionCallTools(funcName, description string, param ...ParamInfo) *Fu
 	}
 }
 
-type FunctionCall []*FunctionCallTool
+type functionCall []*functionCallTool
 
-func (funcs *FunctionCall) AddFunction(tool *FunctionCallTool) {
+func (funcs *functionCall) AddFunction(tool *functionCallTool) {
 	*funcs = append(*funcs, tool)
 }
 
-func WithParams(name, description, paramType string, require bool) ParamInfo {
-	return ParamInfo{
+func withParams(name, description, paramType string, require bool) paramInfo {
+	return paramInfo{
 		Name:        name,
 		Description: description,
 		Type:        paramType,
@@ -129,7 +129,7 @@ func WithParams(name, description, paramType string, require bool) ParamInfo {
 	}
 }
 
-type ParamInfo struct {
+type paramInfo struct {
 	Name        string
 	Description string
 	Type        string

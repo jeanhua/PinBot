@@ -17,9 +17,9 @@ func (bot *BotContext) onPrivateMessage(msg *model.FriendMessage) {
 	trimText := strings.TrimSpace(text)
 
 	// 处理指令
-	if botcommand.DealFriendCommand(trimText, msg) {
+	if !botcommand.DealFriendCommand(trimText, msg) {
 		return
 	}
 
-	bot.Plugins.ExcuteFriend(msg)
+	bot.Plugins.excuteFriend(msg)
 }
