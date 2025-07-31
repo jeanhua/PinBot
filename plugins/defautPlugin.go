@@ -18,7 +18,7 @@ import (
 
 var (
 	llmLock    sync.Mutex
-	aiModelMap = make(map[uint]aicommunicate.AiModel)
+	aiModelMap = concurrent.NewConcurrentMap[uint, aicommunicate.AiModel]()
 	repeatMap  = concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]]()
 )
 
@@ -33,16 +33,20 @@ func defaultPluginOnFriend(message *model.FriendMessage) bool {
 func defaultPluginOnGroup(message *model.GroupMessage) bool {
 	text, mention := utils.ExtractMessageContent(message)
 	// 复读机
-	repeat := repeatMap.Get(message.GroupId)
-	if repeat.First >= 2 && repeat.Second == text {
-		msg := messagechain.Group(message.GroupId).Text(text)
-		msg.Send()
-		repeatMap.Set(message.GroupId, tuple.Of(1, text))
-		return false
-	} else if repeat.Second != text {
-		repeatMap.Set(message.GroupId, tuple.Of(1, text))
+	repeat, ok := repeatMap.Get(message.GroupId)
+	if ok {
+		if repeat.First >= 2 && repeat.Second == text {
+			msg := messagechain.Group(message.GroupId).Text(text)
+			msg.Send()
+			repeatMap.Set(message.GroupId, tuple.Of(1, text))
+			return false
+		} else if repeat.Second != text {
+			repeatMap.Set(message.GroupId, tuple.Of(1, text))
+		} else {
+			repeatMap.Set(message.GroupId, tuple.Of(repeat.First+1, text))
+		}
 	} else {
-		repeatMap.Set(message.GroupId, tuple.Of(repeat.First+1, text))
+		repeatMap.Set(message.GroupId, tuple.Of(1, text))
 	}
 	// AI聊天
 	if !mention {
@@ -149,8 +153,8 @@ func processPrivateAIResponse(msg *model.FriendMessage, text string) {
 
 // 获取或创建私聊AI模型
 func getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
-	deepseek := aiModelMap[uid]
-	if deepseek == nil {
+	deepseek, ok := aiModelMap.Get(uid)
+	if !ok {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().SiliconflowToken,
@@ -158,15 +162,15 @@ func getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
 				sendPrivateMessage(uid, text)
 			},
 		)
-		aiModelMap[uint(uid)] = deepseek
+		aiModelMap.Set(uid, deepseek)
 	}
 	return deepseek
 }
 
 // 获取或创建群AI模型
 func getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
-	deepseek := aiModelMap[uid]
-	if deepseek == nil {
+	deepseek, ok := aiModelMap.Get(uid)
+	if !ok {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().SiliconflowToken,
@@ -175,7 +179,7 @@ func getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
 				chain.Send()
 			},
 		)
-		aiModelMap[uint(uid)] = deepseek
+		aiModelMap.Set(uid, deepseek)
 	}
 	return deepseek
 }

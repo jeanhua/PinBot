@@ -55,7 +55,7 @@ func (plugin *BotPlugin) excuteGroup(message *model.GroupMessage) {
 
 func (p *BotPlugin) AddPlugin(plugin *PluginContext) {
 	p.plugins = append(p.plugins, plugin)
-	botcommand.Plugins = append(botcommand.Plugins, botcommand.PluginMeta{
+	botcommand.Plugins = append(botcommand.Plugins, &botcommand.PluginMeta{
 		Name:        plugin.name,
 		Description: plugin.description,
 		IsPublic:    plugin.isPublic,

@@ -18,8 +18,6 @@ type FunctionCall struct {
 	Param  map[string]any `json:"parameters"`
 }
 
-const paramError = "变量类型错误"
-
 var zanao = &utils.Zanao{}
 
 // 函数注册表
