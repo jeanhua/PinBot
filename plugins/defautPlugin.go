@@ -22,7 +22,7 @@ var (
 	repeatMap  = concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]]()
 )
 
-var DefaultPlugin = botcontext.NewPluginContext("default plugin", defaultPluginOnFriend, defaultPluginOnGroup, "系统默认插件, AI智能体, 可以聊天，逛校园集市，检索和浏览网页, 群语音聊天等")
+var DefaultPlugin = botcontext.NewPluginContext("default plugin", defaultPluginOnFriend, defaultPluginOnGroup, "系统默认插件, AI智能体, 可以聊天，逛校园集市，检索和浏览网页, 群语音聊天, 发表情包等")
 
 func defaultPluginOnFriend(message *model.FriendMessage) bool {
 	text := utils.ExtractPrivateMessageText(message)
@@ -38,7 +38,7 @@ func defaultPluginOnGroup(message *model.GroupMessage) bool {
 		if repeat.First >= 2 && repeat.Second == text {
 			msg := messagechain.Group(message.GroupId).Text(text)
 			msg.Send()
-			repeatMap.Set(message.GroupId, tuple.Of(1, text))
+			repeatMap.Set(message.GroupId, tuple.Of(-100, text))
 			return false
 		} else if repeat.Second != text {
 			repeatMap.Set(message.GroupId, tuple.Of(1, text))
@@ -79,7 +79,7 @@ func sendBusyResponse(msg *model.GroupMessage) {
 func processGroupAIResponse(msg *model.GroupMessage, text string) {
 	uid := msg.UserId
 	deepseek := getOrCreateGroupAIModel(msg.GroupId)
-	replies := deepseek.Ask(fmt.Sprintf("[nickname: %s]: %s", msg.Sender.Nickname, text))
+	replies := deepseek.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", msg.Sender.Nickname, msg.Sender.UserId, text))
 	if replies == nil {
 		sendErrorResponse(msg, msg.Sender.UserId)
 		return
@@ -139,7 +139,7 @@ func sendPrivateBusyResponse(uid uint) {
 func processPrivateAIResponse(msg *model.FriendMessage, text string) {
 	uid := msg.UserId
 	deepseek := getOrCreatePrivateAIModel(uid)
-	replies := deepseek.Ask(text)
+	replies := deepseek.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", msg.Sender.Nickname, msg.Sender.UserId, text))
 	if replies == nil {
 		chain := messagechain.Friend(msg.Sender.UserId)
 		chain.Text("遇到了一点小问题，请稍后再试")
@@ -171,6 +171,8 @@ func getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
 			func(text string) {
 				sendPrivateMessage(uid, text)
 			},
+			"friend",
+			uid,
 		)
 		aiModelMap.Set(uid, deepseek)
 	}
@@ -188,6 +190,8 @@ func getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
 				chain := messagechain.AIMessage(uid, "lucy-voice-suxinjiejie", text)
 				chain.Send()
 			},
+			"group",
+			uid,
 		)
 		aiModelMap.Set(uid, deepseek)
 	}

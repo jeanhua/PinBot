@@ -25,10 +25,12 @@ type DeepSeekAIBot_v3 struct {
 	tools                  []*functionCallTool
 	sendVoidce             func(text string)
 	theLastCommunicateTime time.Time
+	target                 string // friend/group
+	uid                    uint
 }
 
 // 创建新的DeepSeek AI V3实例
-func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeekAIBot_v3 {
+func NewDeepSeekV3(prompt, token string, sendVoidce func(text string), target string, uid uint) *DeepSeekAIBot_v3 {
 	return &DeepSeekAIBot_v3{
 		messageChain: []*message{
 			{
@@ -41,6 +43,8 @@ func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeek
 		SystemPrompt:           prompt,
 		sendVoidce:             sendVoidce,
 		theLastCommunicateTime: time.Now(),
+		target:                 target,
+		uid:                    uid,
 	}
 }
 
@@ -98,6 +102,8 @@ func initFunctionTools() []*functionCallTool {
 	))
 
 	tools.addFunction(makeFunctionCallTools("getCurrentTime", "获取当前时间"))
+
+	tools.addFunction(makeFunctionCallTools("hateImage", "发送讨厌表情包(表达生气)", withParams("userid", "用户的Id", "string", true)))
 
 	return tools
 }
@@ -217,7 +223,8 @@ func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []toolCall) error {
 			log.Println(toolCall.Function.Arguments)
 			return err
 		}
-
+		paramMap["target"] = deepseek.target
+		paramMap["uid"] = fmt.Sprintf("%d", deepseek.uid)
 		callResult, err := functioncall.CallFunction(toolCall.Function.Name, paramMap, deepseek.sendVoidce)
 		if err != nil {
 			log.Println("CallFunction failed:", err)

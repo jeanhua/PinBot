@@ -3,9 +3,11 @@ package functioncall
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/jeanhua/PinBot/config"
+	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/utils"
 )
 
@@ -31,6 +33,7 @@ var functionRegistry = map[string]FunctionHandler{
 	"webSearch":      &WebSearchHandler{},
 	"webExplore":     &WebExploreHandler{},
 	"getCurrentTime": &GetCurrentTimeHandler{},
+	"hateImage":      &HateImageHandler{},
 }
 
 func CallFunction(name string, params map[string]any, sendVoice func(text string)) (string, error) {
@@ -138,6 +141,37 @@ type GetCurrentTimeHandler struct{}
 func (h *GetCurrentTimeHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
 	now := time.Now().Local()
 	return fmt.Sprintf("当前时间是 %d年%d月%d日 %d时%d分 %s", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Weekday().String()), nil
+}
+
+type HateImageHandler struct{}
+
+func (h *HateImageHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+	userId, err := getStringParam(params, "userid")
+	if err != nil {
+		return "", err
+	}
+	uidStr, err := getStringParam(params, "uid")
+	if err != nil {
+		return "", err
+	}
+	target, err := getStringParam(params, "target")
+	if err != nil {
+		return "", err
+	}
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		return "", err
+	}
+	if target == "group" {
+		chain := messagechain.Group(uint(uid))
+		chain.UrlImage("https://api.mhimg.cn/api/biaoqingbao_pa?qq=" + userId)
+		chain.Send()
+	} else if target == "friend" {
+		chain := messagechain.Friend(uint(uid))
+		chain.UrlImage("https://api.mhimg.cn/api/biaoqingbao_pa?qq=" + userId)
+		chain.Send()
+	}
+	return "发送成功", nil
 }
 
 func getStringParam(params map[string]any, key string) (string, error) {
