@@ -80,6 +80,10 @@ func processGroupAIResponse(msg *model.GroupMessage, text string) {
 	uid := msg.UserId
 	deepseek := getOrCreateGroupAIModel(msg.GroupId)
 	replies := deepseek.Ask(fmt.Sprintf("[nickname: %s]: %s", msg.Sender.Nickname, text))
+	if replies == nil {
+		sendErrorResponse(msg, msg.Sender.UserId)
+		return
+	}
 	for _, reply := range replies {
 		if strings.TrimSpace(reply.Response) == "" {
 			continue
@@ -136,6 +140,12 @@ func processPrivateAIResponse(msg *model.FriendMessage, text string) {
 	uid := msg.UserId
 	deepseek := getOrCreatePrivateAIModel(uid)
 	replies := deepseek.Ask(text)
+	if replies == nil {
+		chain := messagechain.Friend(msg.Sender.UserId)
+		chain.Text("遇到了一点小问题，请稍后再试")
+		chain.Send()
+		return
+	}
 
 	for _, reply := range replies {
 		if strings.TrimSpace(reply.Response) == "" {

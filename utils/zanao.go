@@ -91,7 +91,7 @@ func (z *Zanao) GetNewest(fromTime string) string {
 		log.Println(err)
 		return ""
 	}
-	var posts PostsList
+	var posts postsList
 	err = json.Unmarshal(respBytes, &posts)
 	if err != nil {
 		log.Println(err)
@@ -134,7 +134,7 @@ func (z *Zanao) GetHot() string {
 		log.Println(err)
 		return ""
 	}
-	var posts HotList
+	var posts hotList
 	err = json.Unmarshal(respBytes, &posts)
 	if err != nil {
 		log.Println(err)
@@ -174,7 +174,7 @@ func (z *Zanao) GetDetail(id string) string {
 		log.Println(err)
 		return ""
 	}
-	var post SinglePost
+	var post singlePost
 	err = json.Unmarshal(respBytes, &post)
 	if err != nil {
 		log.Println(err)
@@ -213,7 +213,7 @@ func (z *Zanao) Search(keyWords string) string {
 		log.Println(err)
 		return ""
 	}
-	var posts PostsList
+	var posts postsList
 	err = json.Unmarshal(respBytes, &posts)
 	if err != nil {
 		log.Println(err)
@@ -254,7 +254,7 @@ func (z *Zanao) GetComments(id string) string {
 		log.Println(err)
 		return ""
 	}
-	var comments Comments
+	var comments comments
 	err = json.Unmarshal(respBytes, &comments)
 	if err != nil {
 		log.Println(err)
@@ -278,7 +278,7 @@ func (z *Zanao) GetComments(id string) string {
 	return back.String()
 }
 
-type PostsList struct {
+type postsList struct {
 	Data struct {
 		List []struct {
 			ID        string `json:"thread_id"`  // 帖子ID
@@ -292,7 +292,7 @@ type PostsList struct {
 	} `json:"data"`
 }
 
-type SinglePost struct {
+type singlePost struct {
 	Data struct {
 		Detail struct {
 			Nickname  string `json:"nickname"`   // 昵称
@@ -304,7 +304,7 @@ type SinglePost struct {
 	} `json:"data"`
 }
 
-type HotList struct {
+type hotList struct {
 	Data struct {
 		List []struct {
 			ID        string `json:"thread_id"`  // 帖子ID
@@ -316,7 +316,7 @@ type HotList struct {
 	} `json:"data"`
 }
 
-type Comments struct {
+type comments struct {
 	Data struct {
 		List []struct {
 			Nickname  string `json:"nickname"`

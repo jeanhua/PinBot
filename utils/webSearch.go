@@ -52,7 +52,7 @@ func WebSearch(token, query string, timeRange *string, include, exclude []string
 		log.Println("error in read body: webSearch")
 		return "查询失败"
 	}
-	searchResponse := SearchResponse{}
+	searchResponse := searchResponse{}
 	err = json.Unmarshal(respbytes, &searchResponse)
 	if err != nil {
 		log.Println("error in json unmarshal in response: webSearch")
@@ -62,7 +62,7 @@ func WebSearch(token, query string, timeRange *string, include, exclude []string
 	return searchResponse.toString()
 }
 
-type SearchResponse struct {
+type searchResponse struct {
 	Query   string `json:"query"`
 	Results []struct {
 		URL     string  `json:"url"`
@@ -73,7 +73,7 @@ type SearchResponse struct {
 	ResponseTime float64 `json:"response_time"` // 响应时间
 }
 
-func (sr *SearchResponse) toString() string {
+func (sr *searchResponse) toString() string {
 	var output string
 
 	output += "Search Query: " + sr.Query + "\n"

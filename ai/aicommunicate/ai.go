@@ -1,5 +1,7 @@
 package aicommunicate
 
+import "strings"
+
 type AiModel interface {
 	Ask(question string) []*AiAnswer
 }
@@ -27,11 +29,8 @@ type functionCallTool struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
 		Parameters  struct {
-			Type       string `json:"type"`
-			Properties map[string]struct {
-				Type        string `json:"type"`
-				Description string `json:"description"`
-			} `json:"properties"`
+			Type       string          `json:"type"`
+			Properties *map[string]any `json:"properties"`
 		} `json:"parameters"`
 		Required []string `json:"required"`
 		Strict   bool     `json:"strict"`
@@ -61,21 +60,23 @@ type toolCall struct {
 }
 
 func makeFunctionCallTools(funcName, description string, param ...paramInfo) *functionCallTool {
-	var types map[string]struct {
-		Type        string "json:\"type\""
-		Description string "json:\"description\""
-	} = map[string]struct {
-		Type        string "json:\"type\""
-		Description string "json:\"description\""
-	}{}
+	var propoties = map[string]any{}
 	requires := []string{}
+	const arrayPrefex = "array:"
 	for _, p := range param {
-		types[p.Name] = struct {
-			Type        string "json:\"type\""
-			Description string "json:\"description\""
-		}{
-			Type:        p.Type,
-			Description: p.Description,
+		if strings.HasPrefix(p.Type, arrayPrefex) {
+			propoties[p.Name] = &map[string]any{
+				"type": "array",
+				"items": map[string]string{
+					"type": strings.TrimPrefix(p.Type, arrayPrefex),
+				},
+				"description": p.Description,
+			}
+		} else {
+			propoties[p.Name] = &map[string]any{
+				"type":        p.Type,
+				"description": p.Description,
+			}
 		}
 		if p.Require {
 			requires = append(requires, p.Name)
@@ -87,11 +88,8 @@ func makeFunctionCallTools(funcName, description string, param ...paramInfo) *fu
 			Name        string "json:\"name\""
 			Description string "json:\"description\""
 			Parameters  struct {
-				Type       string "json:\"type\""
-				Properties map[string]struct {
-					Type        string "json:\"type\""
-					Description string "json:\"description\""
-				} "json:\"properties\""
+				Type       string          "json:\"type\""
+				Properties *map[string]any "json:\"properties\""
 			} "json:\"parameters\""
 			Required []string "json:\"required\""
 			Strict   bool     "json:\"strict\""
@@ -99,14 +97,11 @@ func makeFunctionCallTools(funcName, description string, param ...paramInfo) *fu
 			Name:        funcName,
 			Description: description,
 			Parameters: struct {
-				Type       string "json:\"type\""
-				Properties map[string]struct {
-					Type        string "json:\"type\""
-					Description string "json:\"description\""
-				} "json:\"properties\""
+				Type       string          "json:\"type\""
+				Properties *map[string]any "json:\"properties\""
 			}{
 				Type:       "object",
-				Properties: types,
+				Properties: &propoties,
 			},
 			Required: requires,
 			Strict:   true,
@@ -116,7 +111,7 @@ func makeFunctionCallTools(funcName, description string, param ...paramInfo) *fu
 
 type functionCall []*functionCallTool
 
-func (funcs *functionCall) AddFunction(tool *functionCallTool) {
+func (funcs *functionCall) addFunction(tool *functionCallTool) {
 	*funcs = append(*funcs, tool)
 }
 

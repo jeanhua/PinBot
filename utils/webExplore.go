@@ -13,7 +13,7 @@ const failText = "页面打开失败"
 
 func WebExplore(links []string, token string) string {
 	const requestUrl = "https://api.tavily.com/extract"
-	postBody := &WebExploreRequestBody{
+	postBody := &webExploreRequestBody{
 		Urls:         links,
 		ExtractDepth: "advanced",
 	}
@@ -45,7 +45,7 @@ func WebExplore(links []string, token string) string {
 		log.Println("error in read response body: webExplore", err)
 		return failText
 	}
-	var response WebExploreResponse
+	var response webExploreResponse
 	err = json.Unmarshal(respbytes, &response)
 	if err != nil {
 		log.Println("error in jsonUnMarshal: webExplore", err)
@@ -54,12 +54,12 @@ func WebExplore(links []string, token string) string {
 	return response.ToReadableString()
 }
 
-type WebExploreRequestBody struct {
+type webExploreRequestBody struct {
 	Urls         []string `json:"urls"`
 	ExtractDepth string   `json:"extract_depth"`
 }
 
-type WebExploreResponse struct {
+type webExploreResponse struct {
 	Requests []struct {
 		Url        string `json:"url"`
 		RawContent string `json:"raw_content"`
@@ -71,7 +71,7 @@ type WebExploreResponse struct {
 	ResponseTime float32 `json:"response_time"`
 }
 
-func (r *WebExploreResponse) ToReadableString() string {
+func (r *webExploreResponse) ToReadableString() string {
 	var output string
 
 	output += "=== Successful Requests ===\n"

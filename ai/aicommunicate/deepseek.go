@@ -47,58 +47,57 @@ func NewDeepSeekV3(prompt, token string, sendVoidce func(text string)) *DeepSeek
 // 初始化所有可用的功能工具
 func initFunctionTools() []*functionCallTool {
 	tools := functionCall{}
-	const strArry = "array<string>"
-
+	const strArray = "array:string"
 	// 定义所有工具函数
-	tools.AddFunction(makeFunctionCallTools(
+	tools.addFunction(makeFunctionCallTools(
 		"webSearch",
 		"执行网络搜索，用于获取互联网相关信息",
 		withParams("query", "搜索查询内容", "string", true),
 		withParams("timeRange", "限制搜索结果的时间范围(可选)(day,week,month,year)", "string", false),
-		withParams("include", "限定搜索结果必须包含的域名列表(可选)", strArry, false),
-		withParams("exclude", "排除特定域名的搜索结果(可选)", strArry, false),
+		withParams("include", "限定搜索结果必须包含的域名列表(可选)", strArray, false),
+		withParams("exclude", "排除特定域名的搜索结果(可选)", strArray, false),
 		withParams("count", "返回的最大搜索结果数量(可选)", "int", false),
 	))
 
-	tools.AddFunction(makeFunctionCallTools(
+	tools.addFunction(makeFunctionCallTools(
 		"webExplore",
 		"打开某些网页链接进行网页浏览",
-		withParams("links", "要打开的网页链接数组", strArry, true),
+		withParams("links", "要打开的网页链接数组", strArray, true),
 	))
 
-	tools.AddFunction(makeFunctionCallTools(
+	tools.addFunction(makeFunctionCallTools(
 		"browseHomepage",
 		"浏览校园集市论坛主页帖子",
 		withParams("fromTime", "时间戳,该时间戳前的10条帖子,输入0则表示最新的10条帖子", "string", true),
 	))
 
-	tools.AddFunction(makeFunctionCallTools("browseHot", "浏览校园集市论坛热门帖子"))
+	tools.addFunction(makeFunctionCallTools("browseHot", "浏览校园集市论坛热门帖子"))
 
-	tools.AddFunction(makeFunctionCallTools(
+	tools.addFunction(makeFunctionCallTools(
 		"searchPost",
 		"搜索校园集市论坛帖子",
 		withParams("keywords", "搜索关键词", "string", true),
 	))
 
-	tools.AddFunction(makeFunctionCallTools(
+	tools.addFunction(makeFunctionCallTools(
 		"viewComments",
 		"浏览校园集市论坛指定帖子的评论",
 		withParams("postId", "帖子ID", "string", true),
 	))
 
-	tools.AddFunction(makeFunctionCallTools(
+	tools.addFunction(makeFunctionCallTools(
 		"viewPost",
 		"查看校园集市论坛某个帖子详情",
 		withParams("postId", "帖子ID", "string", true),
 	))
 
-	tools.AddFunction(makeFunctionCallTools(
+	tools.addFunction(makeFunctionCallTools(
 		"speak",
 		"向用户发送一段不超过60s的语音",
 		withParams("text", "要发送的语音内容", "string", true),
 	))
 
-	tools.AddFunction(makeFunctionCallTools("getCurrentTime", "获取当前时间"))
+	tools.addFunction(makeFunctionCallTools("getCurrentTime", "获取当前时间"))
 
 	return tools
 }
@@ -215,6 +214,7 @@ func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []toolCall) error {
 		var paramMap map[string]any
 		if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &paramMap); err != nil {
 			log.Println("Unmarshal tool call args failed:", err)
+			log.Println(toolCall.Function.Arguments)
 			return err
 		}
 

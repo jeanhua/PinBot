@@ -33,3 +33,6 @@ build/
 # editor
 .vscode/
 .idea/
+
+# temp
+*temp.txt
