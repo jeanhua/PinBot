@@ -132,9 +132,7 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 		// 处理工具调用
 		if len(choice.Message.ToolCalls) > 0 {
 			responses = deepseek.handleToolCalls(&choice, responses)
-			if responses != nil {
-				continue
-			}
+			continue
 		}
 
 		// 处理普通响应
@@ -204,13 +202,11 @@ func (deepseek *DeepSeekAIBot_v3) handleToolCalls(choice *choice, responses []*A
 		})
 		deepseek.appendAssistantMessage(choice.Message.Content)
 	}
-
 	// 处理工具调用
 	if err := deepseek.executeToolCalls(choice.Message.ToolCalls); err != nil {
 		log.Println("Error executing tool calls:", err)
 		return nil
 	}
-
 	return responses
 }
 
