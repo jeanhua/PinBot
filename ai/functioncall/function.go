@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/jeanhua/PinBot/config"
+	"github.com/jeanhua/PinBot/datastructure/tuple"
 	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/utils"
 )
 
 type FunctionHandler interface {
-	Handle(params map[string]any, sendVoice func(text string)) (string, error)
+	Handle(params map[string]any) (string, error)
 }
 
 type FunctionCall struct {
@@ -36,18 +37,18 @@ var functionRegistry = map[string]FunctionHandler{
 	"hateImage":      &HateImageHandler{},
 }
 
-func CallFunction(name string, params map[string]any, sendVoice func(text string)) (string, error) {
+func CallFunction(name string, params map[string]any) (string, error) {
 	log.Println("call function: name:", name, "params", params)
 	handler, ok := functionRegistry[name]
 	if !ok {
 		return "function call不匹配，请检查后重试", nil
 	}
-	return handler.Handle(params, sendVoice)
+	return handler.Handle(params)
 }
 
 type BrowseHomepageHandler struct{}
 
-func (h *BrowseHomepageHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+func (h *BrowseHomepageHandler) Handle(params map[string]any) (string, error) {
 	fromTime, err := getStringParam(params, "fromTime")
 	if err != nil {
 		return "", err
@@ -57,7 +58,7 @@ func (h *BrowseHomepageHandler) Handle(params map[string]any, _ func(text string
 
 type SearchPostHandler struct{}
 
-func (h *SearchPostHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+func (h *SearchPostHandler) Handle(params map[string]any) (string, error) {
 	keywords, err := getStringParam(params, "keywords")
 	if err != nil {
 		return "", err
@@ -67,7 +68,7 @@ func (h *SearchPostHandler) Handle(params map[string]any, _ func(text string)) (
 
 type ViewPostHandler struct{}
 
-func (h *ViewPostHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+func (h *ViewPostHandler) Handle(params map[string]any) (string, error) {
 	postId, err := getStringParam(params, "postId")
 	if err != nil {
 		return "", err
@@ -77,13 +78,13 @@ func (h *ViewPostHandler) Handle(params map[string]any, _ func(text string)) (st
 
 type BrowseHotHandler struct{}
 
-func (h *BrowseHotHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+func (h *BrowseHotHandler) Handle(params map[string]any) (string, error) {
 	return zanao.GetHot(), nil
 }
 
 type ViewCommentsHandler struct{}
 
-func (h *ViewCommentsHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+func (h *ViewCommentsHandler) Handle(params map[string]any) (string, error) {
 	postId, err := getStringParam(params, "postId")
 	if err != nil {
 		return "", err
@@ -93,18 +94,30 @@ func (h *ViewCommentsHandler) Handle(params map[string]any, _ func(text string))
 
 type SpeakHandler struct{}
 
-func (h *SpeakHandler) Handle(params map[string]any, sendVoice func(text string)) (string, error) {
+func (h *SpeakHandler) Handle(params map[string]any) (string, error) {
 	text, err := getStringParam(params, "text")
 	if err != nil {
 		return "", err
 	}
-	sendVoice(text)
+	target, err := getTargetAndUid(params)
+	if err != nil {
+		return "", err
+	}
+	switch target.First {
+	case "group":
+		chain := messagechain.AIMessage(target.Second, "lucy-voice-suxinjiejie", text)
+		chain.Send()
+	case "friend":
+		chain := messagechain.Friend(target.Second)
+		chain.Text("[语音消息]" + text)
+		chain.Send()
+	}
 	return "已成功给用户发送语音，你可以继续回复用户，或者输出一个空格结束", nil
 }
 
 type WebSearchHandler struct{}
 
-func (h *WebSearchHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+func (h *WebSearchHandler) Handle(params map[string]any) (string, error) {
 	query, err := getStringParam(params, "query")
 	if err != nil {
 		return "", err
@@ -121,7 +134,7 @@ func (h *WebSearchHandler) Handle(params map[string]any, _ func(text string)) (s
 
 type WebExploreHandler struct{}
 
-func (h *WebExploreHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+func (h *WebExploreHandler) Handle(params map[string]any) (string, error) {
 	linksInterface, ok := params["links"]
 	if !ok {
 		return "", fmt.Errorf("缺少参数: links")
@@ -138,36 +151,29 @@ func (h *WebExploreHandler) Handle(params map[string]any, _ func(text string)) (
 
 type GetCurrentTimeHandler struct{}
 
-func (h *GetCurrentTimeHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+func (h *GetCurrentTimeHandler) Handle(params map[string]any) (string, error) {
 	now := time.Now().Local()
 	return fmt.Sprintf("当前时间是 %d年%d月%d日 %d时%d分 %s", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Weekday().String()), nil
 }
 
 type HateImageHandler struct{}
 
-func (h *HateImageHandler) Handle(params map[string]any, _ func(text string)) (string, error) {
+func (h *HateImageHandler) Handle(params map[string]any) (string, error) {
 	userId, err := getStringParam(params, "userid")
 	if err != nil {
 		return "", err
 	}
-	uidStr, err := getStringParam(params, "uid")
+	target, err := getTargetAndUid(params)
 	if err != nil {
 		return "", err
 	}
-	target, err := getStringParam(params, "target")
-	if err != nil {
-		return "", err
-	}
-	uid, err := strconv.Atoi(uidStr)
-	if err != nil {
-		return "", err
-	}
-	if target == "group" {
-		chain := messagechain.Group(uint(uid))
+	switch target.First {
+	case "group":
+		chain := messagechain.Group(target.Second)
 		chain.UrlImage("https://api.mhimg.cn/api/biaoqingbao_pa?qq=" + userId)
 		chain.Send()
-	} else if target == "friend" {
-		chain := messagechain.Friend(uint(uid))
+	case "friend":
+		chain := messagechain.Friend(target.Second)
 		chain.UrlImage("https://api.mhimg.cn/api/biaoqingbao_pa?qq=" + userId)
 		chain.Send()
 	}
@@ -211,4 +217,25 @@ func convertToStringSlice(linksInterface interface{}) ([]string, error) {
 		links = append(links, str)
 	}
 	return links, nil
+}
+
+func getTargetAndUid(params map[string]any) (*tuple.Tuple[string, uint], error) {
+	uidStr, err := getStringParam(params, "uid")
+	const errorStr = "error when getTargetAndUid:"
+	if err != nil {
+		log.Println(errorStr, err)
+		return nil, err
+	}
+	target, err := getStringParam(params, "target")
+	if err != nil {
+		log.Println(errorStr, err)
+		return nil, err
+	}
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		log.Println(errorStr, err)
+		return nil, err
+	}
+	result := tuple.Of(target, uint(uid))
+	return &result, nil
 }

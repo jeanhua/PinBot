@@ -23,14 +23,13 @@ type DeepSeekAIBot_v3 struct {
 	SystemPrompt           string
 	messageChain           []*message
 	tools                  []*functionCallTool
-	sendVoidce             func(text string)
 	theLastCommunicateTime time.Time
 	target                 string // friend/group
 	uid                    uint
 }
 
 // 创建新的DeepSeek AI V3实例
-func NewDeepSeekV3(prompt, token string, sendVoidce func(text string), target string, uid uint) *DeepSeekAIBot_v3 {
+func NewDeepSeekV3(prompt, token string, target string, uid uint) *DeepSeekAIBot_v3 {
 	return &DeepSeekAIBot_v3{
 		messageChain: []*message{
 			{
@@ -41,7 +40,6 @@ func NewDeepSeekV3(prompt, token string, sendVoidce func(text string), target st
 		tools:                  initFunctionTools(),
 		token:                  token,
 		SystemPrompt:           prompt,
-		sendVoidce:             sendVoidce,
 		theLastCommunicateTime: time.Now(),
 		target:                 target,
 		uid:                    uid,
@@ -134,7 +132,9 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 		// 处理工具调用
 		if len(choice.Message.ToolCalls) > 0 {
 			responses = deepseek.handleToolCalls(&choice, responses)
-			continue
+			if responses != nil {
+				continue
+			}
 		}
 
 		// 处理普通响应
@@ -225,10 +225,10 @@ func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []toolCall) error {
 		}
 		paramMap["target"] = deepseek.target
 		paramMap["uid"] = fmt.Sprintf("%d", deepseek.uid)
-		callResult, err := functioncall.CallFunction(toolCall.Function.Name, paramMap, deepseek.sendVoidce)
+		callResult, err := functioncall.CallFunction(toolCall.Function.Name, paramMap)
 		if err != nil {
 			log.Println("CallFunction failed:", err)
-			return err
+			callResult = "function call 调用失败"
 		}
 
 		deepseek.appendToolResponse(toolCall.Id, callResult)

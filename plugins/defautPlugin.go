@@ -168,9 +168,6 @@ func getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().SiliconflowToken,
-			func(text string) {
-				sendPrivateMessage(uid, text)
-			},
 			"friend",
 			uid,
 		)
@@ -186,10 +183,6 @@ func getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().SiliconflowToken,
-			func(text string) {
-				chain := messagechain.AIMessage(uid, "lucy-voice-suxinjiejie", text)
-				chain.Send()
-			},
 			"group",
 			uid,
 		)
