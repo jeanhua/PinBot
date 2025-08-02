@@ -32,8 +32,9 @@ type functionCallTool struct {
 			Type       string          `json:"type"`
 			Properties *map[string]any `json:"properties"`
 		} `json:"parameters"`
-		Required []string `json:"required"`
-		Strict   bool     `json:"strict"`
+		Required             []string `json:"required"`
+		Strict               bool     `json:"strict"`
+		AdditionalProperties bool     `json:"additionalProperties"`
 	} `json:"function"`
 }
 
@@ -91,8 +92,9 @@ func makeFunctionCallTools(funcName, description string, param ...paramInfo) *fu
 				Type       string          "json:\"type\""
 				Properties *map[string]any "json:\"properties\""
 			} "json:\"parameters\""
-			Required []string "json:\"required\""
-			Strict   bool     "json:\"strict\""
+			Required             []string "json:\"required\""
+			Strict               bool     "json:\"strict\""
+			AdditionalProperties bool     `json:"additionalProperties"`
 		}{
 			Name:        funcName,
 			Description: description,
@@ -103,8 +105,9 @@ func makeFunctionCallTools(funcName, description string, param ...paramInfo) *fu
 				Type:       "object",
 				Properties: &propoties,
 			},
-			Required: requires,
-			Strict:   true,
+			Required:             requires,
+			Strict:               true,
+			AdditionalProperties: false,
 		},
 	}
 }
