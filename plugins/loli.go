@@ -8,7 +8,6 @@ import (
 	"github.com/jeanhua/PinBot/botcontext"
 	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
-	"github.com/jeanhua/PinBot/utils"
 )
 
 var LoliPlugin = botcontext.NewPluginContext("loli", loliPluginOnFriend, loliPluginOnGroup, "二次元萝莉插件(群聊)，发送 /loli 获取随机图片")
@@ -21,14 +20,14 @@ func loliPluginOnFriend(message *model.FriendMessage) bool {
 	return true
 }
 func loliPluginOnGroup(message *model.GroupMessage) bool {
-	text, mention := utils.ExtractMessageContent(message)
+	text, mention := botcontext.ExtractMessageContent(message)
 	if !mention {
 		return true
 	}
 	trimText := strings.TrimSpace(text)
 	if trimText == "/loli" {
 		if !loliLock.TryLock() {
-			utils.SendShortReply(message, message.UserId, "反应不过来了，待会再试😘")
+			botcontext.SendShortReply(message, message.UserId, "反应不过来了，待会再试😘")
 			return false
 		}
 		defer loliLock.Unlock()

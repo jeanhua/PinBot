@@ -40,7 +40,7 @@ var NewPlugin = botcontext.NewPluginContext("new plugin", newPluginOnFriend, new
 #### 2.4 实现私聊消息处理函数
 ```go
 func newPluginOnFriend(message *model.FriendMessage) bool {
-    text := utils.ExtractPrivateMessageText(message)
+    text := botcontext.ExtractPrivateMessageText(message)
     log.Printf("[私聊消息](%s):%s\n", message.Sender.Nickname, text)
     // 返回 true 表示继续执行下一个插件，返回 false 表示停止执行后续插件
     return true
@@ -50,7 +50,7 @@ func newPluginOnFriend(message *model.FriendMessage) bool {
 #### 2.5 实现群聊消息处理函数
 ```go
 func newPluginOnGroup(message *model.GroupMessage) bool {
-    text, mention := utils.ExtractMessageContent(message)
+    text, mention := botcontext.ExtractMessageContent(message)
     log.Printf("[群聊消息](%s):%s\n", message.Sender.Nickname, text)
     // 返回 true 表示继续执行下一个插件，返回 false 表示停止执行后续插件
     return true
@@ -90,13 +90,13 @@ import (
 var NewPlugin = botcontext.NewPluginContext("new plugin", newPluginOnFriend, newPluginOnGroup, "新插件描述")
 
 func newPluginOnFriend(message *model.FriendMessage) bool {
-    text := utils.ExtractPrivateMessageText(message)
+    text := botcontext.ExtractPrivateMessageText(message)
     log.Printf("[私聊消息](%s):%s\n", message.Sender.Nickname, text)
     return true
 }
 
 func newPluginOnGroup(message *model.GroupMessage) bool {
-    text, mention := utils.ExtractMessageContent(message)
+    text, mention := botcontext.ExtractMessageContent(message)
     log.Printf("[群聊消息](%s):%s\n", message.Sender.Nickname, text)
     return true
 }

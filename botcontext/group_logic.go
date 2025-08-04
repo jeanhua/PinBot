@@ -5,12 +5,11 @@ import (
 
 	"github.com/jeanhua/PinBot/botcommand"
 	"github.com/jeanhua/PinBot/model"
-	"github.com/jeanhua/PinBot/utils"
 )
 
 // 处理群组消息
 func (bot *BotContext) onGroupMessage(msg *model.GroupMessage) {
-	text, mention := utils.ExtractMessageContent(msg)
+	text, mention := ExtractMessageContent(msg)
 	if strings.TrimSpace(text) == "" {
 		return
 	}

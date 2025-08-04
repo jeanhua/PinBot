@@ -1,10 +1,7 @@
 package plugins
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"strings"
 
@@ -21,7 +18,7 @@ func dailyHotOnFriend(message *model.FriendMessage) bool {
 }
 
 func dailyHotOnGroup(message *model.GroupMessage) bool {
-	text, mention := utils.ExtractMessageContent(message)
+	text, mention := botcontext.ExtractMessageContent(message)
 	if !mention {
 		return true
 	}
@@ -31,7 +28,7 @@ func dailyHotOnGroup(message *model.GroupMessage) bool {
 	}
 	target, err := getDailyHotParam(trimText)
 	if err != nil {
-		utils.SendShortReply(message, message.UserId, err.Error())
+		botcontext.SendShortReply(message, message.UserId, err.Error())
 		return false
 	}
 	if target == "help" {
@@ -40,10 +37,10 @@ func dailyHotOnGroup(message *model.GroupMessage) bool {
 	}
 	hot := getDailyHot(target)
 	if hot == nil {
-		utils.SendShortReply(message, message.UserId, "热搜获取失败，请检查参数")
+		botcontext.SendShortReply(message, message.UserId, "热搜获取失败，请检查参数")
 		return false
 	} else if hot.Code != 200 {
-		utils.SendShortReply(message, message.UserId, "热搜获取失败，请检查热搜服务")
+		botcontext.SendShortReply(message, message.UserId, "热搜获取失败，请检查热搜服务")
 		return false
 	}
 	responseText := ""
@@ -87,28 +84,11 @@ type dailyHotMeta struct {
 }
 
 func getDailyHot(target string) *dailyHotMeta {
-	client := http.Client{}
-	request, err := http.NewRequest(http.MethodGet, "http://localhost:6688/"+target, nil)
+	hot := dailyHotMeta{}
+	httpUtil := utils.HttpUtil{}
+	err := httpUtil.Request(http.MethodGet, "http://localhost:6688/"+target, nil, &hot)
 	if err != nil {
-		log.Println("error when create http request: plugin: DailyHotPlugin: getDailyHot", err)
 		return nil
 	}
-	resp, err := client.Do(request)
-	if err != nil {
-		log.Println("error when send http request: plugin: DailyHotPlugin: getDailyHot", err)
-		return nil
-	}
-	defer resp.Body.Close()
-	bytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("error when get http body: plugin: DailyHotPlugin: getDailyHot", err)
-		return nil
-	}
-	hot := &dailyHotMeta{}
-	err = json.Unmarshal(bytes, hot)
-	if err != nil {
-		log.Println("error when get json unmarshal: plugin: DailyHotPlugin: getDailyHot", err)
-		return nil
-	}
-	return hot
+	return &hot
 }

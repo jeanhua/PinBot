@@ -5,12 +5,11 @@ import (
 
 	"github.com/jeanhua/PinBot/botcommand"
 	"github.com/jeanhua/PinBot/model"
-	"github.com/jeanhua/PinBot/utils"
 )
 
 // 处理私聊消息
 func (bot *BotContext) onPrivateMessage(msg *model.FriendMessage) {
-	text := utils.ExtractPrivateMessageText(msg)
+	text := ExtractPrivateMessageText(msg)
 	if strings.TrimSpace(text) == "" {
 		return
 	}

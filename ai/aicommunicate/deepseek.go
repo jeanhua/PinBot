@@ -24,12 +24,12 @@ type DeepSeekAIBot_v3 struct {
 	messageChain           []*message
 	tools                  []*functionCallTool
 	theLastCommunicateTime time.Time
-	target                 string // friend/group
+	target                 int
 	uid                    uint
 }
 
 // 创建新的DeepSeek AI V3实例
-func NewDeepSeekV3(prompt, token string, target string, uid uint) *DeepSeekAIBot_v3 {
+func NewDeepSeekV3(prompt, token string, target int, uid uint) *DeepSeekAIBot_v3 {
 	return &DeepSeekAIBot_v3{
 		messageChain: []*message{
 			{
@@ -219,9 +219,7 @@ func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []toolCall) error {
 			log.Println(toolCall.Function.Arguments)
 			return err
 		}
-		paramMap["target"] = deepseek.target
-		paramMap["uid"] = fmt.Sprintf("%d", deepseek.uid)
-		callResult, err := functioncall.CallFunction(toolCall.Function.Name, paramMap)
+		callResult, err := functioncall.CallFunction(toolCall.Function.Name, paramMap, deepseek.uid, deepseek.target)
 		if err != nil {
 			log.Println("CallFunction failed:", err)
 			callResult = "function call 调用失败"

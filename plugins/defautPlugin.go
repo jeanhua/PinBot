@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/jeanhua/PinBot/ai/aicommunicate"
+	"github.com/jeanhua/PinBot/ai/functioncall"
 	"github.com/jeanhua/PinBot/botcontext"
 	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/datastructure/concurrent"
 	"github.com/jeanhua/PinBot/datastructure/tuple"
 	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
-	"github.com/jeanhua/PinBot/utils"
 )
 
 var (
@@ -25,13 +25,13 @@ var (
 var DefaultPlugin = botcontext.NewPluginContext("default plugin", defaultPluginOnFriend, defaultPluginOnGroup, "系统默认插件, AI智能体, 可以聊天，逛校园集市，检索和浏览网页, 群语音聊天, 发表情包等")
 
 func defaultPluginOnFriend(message *model.FriendMessage) bool {
-	text := utils.ExtractPrivateMessageText(message)
+	text := botcontext.ExtractPrivateMessageText(message)
 	handlePrivateAIChat(message, text)
 	return false
 }
 
 func defaultPluginOnGroup(message *model.GroupMessage) bool {
-	text, mention := utils.ExtractMessageContent(message)
+	text, mention := botcontext.ExtractMessageContent(message)
 	// 复读机
 	repeat, ok := repeatMap.Get(message.GroupId)
 	if ok {
@@ -115,9 +115,9 @@ func sendReply(msg *model.GroupMessage, uid uint, response string) {
 	replyLength := len(rreply)
 
 	if replyLength <= 500 {
-		utils.SendShortReply(msg, uid, response)
+		botcontext.SendShortReply(msg, uid, response)
 	} else {
-		utils.SendLongReply(msg, rreply, replyLength)
+		botcontext.SendLongReply(msg, rreply, replyLength)
 	}
 }
 
@@ -172,7 +172,7 @@ func getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().SiliconflowToken,
-			"friend",
+			functioncall.TargetFriend,
 			uid,
 		)
 		aiModelMap.Set(uid, deepseek)
@@ -187,7 +187,7 @@ func getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().SiliconflowToken,
-			"group",
+			functioncall.TargetGroup,
 			uid,
 		)
 		aiModelMap.Set(uid, deepseek)
