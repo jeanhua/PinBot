@@ -2,6 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jeanhua/PinBot/messagechain"
@@ -21,20 +24,42 @@ func ExtractPrivateMessageText(msg *model.FriendMessage) string {
 
 // 从群聊消息链中提取文本和是否AT机器人
 func ExtractMessageContent(msg *model.GroupMessage) (string, bool) {
-	text := ""
+	text := strings.Builder{}
 	mention := false
+	groupUserInfo := messagechain.GroupUserInfo{}
 
 	for _, t := range msg.Message {
 		switch t.Type {
 		case "text":
-			text += t.Data["text"].(string)
+			text.WriteString(t.Data["text"].(string))
 		case "at":
-			if t.Data["qq"].(string) == fmt.Sprintf("%d", msg.SelfId) {
+			mentionUser, ok := t.Data["qq"].(string)
+			if !ok {
+				log.Println("error when get mentionUser: ExtractMessageContent")
+				break
+			}
+			mentionUserId, err := strconv.Atoi(mentionUser)
+			if err != nil {
+				log.Println("error when get mentionUserId: ExtractMessageContent")
+				break
+			}
+			if mentionUser == fmt.Sprintf("%d", msg.SelfId) {
 				mention = true
+			} else {
+				card, err := groupUserInfo.GetUserInfo(uint(mentionUserId), msg.GroupId)
+				if err == nil {
+					showName := card.Card
+					if card.Card == "" {
+						showName = card.Nickname
+					}
+					text.WriteString(fmt.Sprintf("[@%s]", showName))
+				} else {
+					text.WriteString(mentionUser)
+				}
 			}
 		}
 	}
-	return text, mention
+	return text.String(), mention
 }
 
 // 发送短回复

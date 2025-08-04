@@ -79,7 +79,11 @@ func sendBusyResponse(msg *model.GroupMessage) {
 func processGroupAIResponse(msg *model.GroupMessage, text string) {
 	uid := msg.UserId
 	deepseek := getOrCreateGroupAIModel(msg.GroupId)
-	replies := deepseek.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", msg.Sender.Nickname, msg.Sender.UserId, text))
+	showName := msg.Sender.Card
+	if showName == "" {
+		showName = msg.Sender.Nickname
+	}
+	replies := deepseek.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", showName, msg.Sender.UserId, text))
 	if replies == nil {
 		sendErrorResponse(msg, msg.Sender.UserId)
 		return

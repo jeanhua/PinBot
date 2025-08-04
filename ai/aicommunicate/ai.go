@@ -105,9 +105,7 @@ func makeFunctionCallTools(funcName, description string, param ...paramInfo) *fu
 				Type:       "object",
 				Properties: &propoties,
 			},
-			Required:             requires,
-			Strict:               true,
-			AdditionalProperties: false,
+			Required: requires,
 		},
 	}
 }
