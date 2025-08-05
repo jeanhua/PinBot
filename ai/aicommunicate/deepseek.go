@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	requestUrl    = "https://api.siliconflow.cn/v1/chat/completions"
-	deepSeekModel = "deepseek-ai/DeepSeek-V3"
+	requestUrl    = "https://api.deepseek.com/chat/completions"
+	deepSeekModel = "deepseek-chat"
 )
 
 type DeepSeekAIBot_v3 struct {
@@ -61,7 +61,7 @@ func initFunctionTools() []*functionCallTool {
 		withParams("timeRange", "限制搜索结果的时间范围(可选)(day,week,month,year)", "string", false),
 		withParams("include", "限定搜索结果必须包含的域名列表(可选)", strArray, false),
 		withParams("exclude", "排除特定域名的搜索结果(可选)", strArray, false),
-		withParams("count", "返回的最大搜索结果数量(可选)", "int", false),
+		withParams("count", "返回的最大搜索结果数量(可选)", "number", false),
 	))
 
 	tools.addFunction(makeFunctionCallTools(
@@ -107,7 +107,7 @@ func initFunctionTools() []*functionCallTool {
 	tools.addFunction(makeFunctionCallTools("hateImage", "发送讨厌表情包(表达生气)", withParams("userid", "用户的Id", "string", true)))
 
 	// 歌曲相关
-	tools.addFunction(makeFunctionCallTools("searchMusic", "搜索音乐", withParams("keyword", "关键词,歌曲名称或者歌手名字", "string", true)))
+	tools.addFunction(makeFunctionCallTools("searchMusic", "搜索音乐", withParams("query", "关键词,歌曲名称或者歌手名字", "string", true)))
 	tools.addFunction(makeFunctionCallTools("shareMusic", "分享音乐", withParams("id", "音乐id,搜索到的音乐id", "string", true)))
 
 	return tools
@@ -157,7 +157,7 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 		responses = append(responses, &AiAnswer{
 			Response: choice.Message.Content,
 		})
-		deepseek.appendAssistantMessage(choice.Message.Content)
+		deepseek.appendMessage(&choice.Message)
 		break
 	}
 
@@ -203,23 +203,14 @@ func (deepseek *DeepSeekAIBot_v3) appendUserMessage(content string) {
 	})
 }
 
-// 添加助手消息到对话链
-func (deepseek *DeepSeekAIBot_v3) appendAssistantMessage(content string) {
-	deepseek.messageChain = append(deepseek.messageChain, &message{
-		Role:    "assistant",
-		Content: content,
-	})
+// 添加消息
+func (deepseek *DeepSeekAIBot_v3) appendMessage(msg *message) {
+	deepseek.messageChain = append(deepseek.messageChain, msg)
 }
 
 // 处理工具调用
 func (deepseek *DeepSeekAIBot_v3) handleToolCalls(choice *choice, responses []*AiAnswer) []*AiAnswer {
-	// 如果有内容先添加内容响应
-	if strings.TrimSpace(choice.Message.Content) != "" {
-		responses = append(responses, &AiAnswer{
-			Response: choice.Message.Content,
-		})
-		deepseek.appendAssistantMessage(choice.Message.Content)
-	}
+	deepseek.appendMessage(&choice.Message)
 	// 处理工具调用
 	if err := deepseek.executeToolCalls(choice.Message.ToolCalls); err != nil {
 		log.Println("Error executing tool calls:", err)

@@ -22,9 +22,10 @@ type commonRequestBody struct {
 }
 
 type message struct {
-	Role       string `json:"role"`
-	Content    string `json:"content"`
-	ToolCallId string `json:"tool_call_id"`
+	Role       string     `json:"role"`
+	Content    string     `json:"content"`
+	ToolCalls  []toolCall `json:"tool_calls"`
+	ToolCallId string     `json:"tool_call_id"`
 }
 type functionCallTool struct {
 	Type     string `json:"type"` // function
@@ -46,16 +47,12 @@ type commonResponseBody struct {
 }
 
 type choice struct {
-	Message struct {
-		Role             string     `json:"role"`
-		Content          string     `json:"content"`
-		ReasoningContent string     `json:"reasoning_content"`
-		ToolCalls        []toolCall `json:"tool_calls"`
-	} `json:"message"`
-	FinishReason string `json:"finish_reason"`
+	Message      message `json:"message"`
+	FinishReason string  `json:"finish_reason"`
 }
 type toolCall struct {
 	Id       string `json:"id"`
+	Type     string `json:"type"`
 	Function struct {
 		Name      string `json:"name"`
 		Arguments string `json:"arguments"`

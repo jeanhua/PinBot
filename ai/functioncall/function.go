@@ -32,7 +32,7 @@ var functionRegistry = map[string]FunctionHandler{
 	"webSearch":      &webSearchHandler{},
 	"webExplore":     &webExploreHandler{},
 	"getCurrentTime": &getCurrentTimeHandler{},
-	"hateImage":      &hateImageHandler{},
+	"hateImage":      &hateImageHandler{},   // 讨厌表情包
 	"searchMusic":    &searchMusicHandler{}, // 搜索网易云音乐
 	"shareMusic":     &shareMusicHandler{},  // 分享网易云音乐
 }
@@ -160,7 +160,7 @@ func (h *getCurrentTimeHandler) Handle(params map[string]any, uid uint, target i
 type hateImageHandler struct{}
 
 func (h *hateImageHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
-	userId, err := getStringParam(params, "uid")
+	userId, err := getStringParam(params, "userid")
 	if err != nil {
 		return "", err
 	}
@@ -180,7 +180,7 @@ func (h *hateImageHandler) Handle(params map[string]any, uid uint, target int) (
 type searchMusicHandler struct{}
 
 func (*searchMusicHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
-	keyword, err := getStringParam(params, "keyword")
+	keyword, err := getStringParam(params, "query")
 	if err != nil {
 		return "", err
 	}

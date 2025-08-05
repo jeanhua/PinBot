@@ -187,7 +187,7 @@ func getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
 	if !ok {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
-			config.GetConfig().SiliconflowToken,
+			config.GetConfig().AIToken,
 			functioncall.TargetFriend,
 			uid,
 		)
@@ -202,7 +202,7 @@ func getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
 	if !ok {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
-			config.GetConfig().SiliconflowToken,
+			config.GetConfig().AIToken,
 			functioncall.TargetGroup,
 			uid,
 		)

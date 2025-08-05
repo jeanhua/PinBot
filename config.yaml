@@ -28,7 +28,7 @@ ai_prompt: "你是一个知心小姐姐，活泼有点小傲娇，不要使用ma
 # 赞噢校园集市token
 zanao_token: # 集市token 抓包请求头中的 X-Sc-Od
 
-siliconflow_token: # 硅基流动token
+ai_token: # 大模型开放平台token
 
 tavilyToken: # tavily api token
 

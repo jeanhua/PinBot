@@ -8,16 +8,16 @@ import (
 )
 
 type ConfigModel struct {
-	Debug            bool   `yaml:"debug"`
-	MaxRun           int    `yaml:"max_run"`
-	NapCatServerUrl  string `yaml:"napcatServerUrl"`
-	LocalListenPort  uint   `yaml:"localListenPort"`
-	AdminId          uint   `yaml:"admin_id"`
-	TestGroup        uint   `yaml:"test_group"`
-	ZanaoToken       string `yaml:"zanao_token"`
-	SiliconflowToken string `yaml:"siliconflow_token"`
-	TavilyToken      string `yaml:"tavilyToken"`
-	Group            struct {
+	Debug           bool   `yaml:"debug"`
+	MaxRun          int    `yaml:"max_run"`
+	NapCatServerUrl string `yaml:"napcatServerUrl"`
+	LocalListenPort uint   `yaml:"localListenPort"`
+	AdminId         uint   `yaml:"admin_id"`
+	TestGroup       uint   `yaml:"test_group"`
+	ZanaoToken      string `yaml:"zanao_token"`
+	AIToken         string `yaml:"ai_token"`
+	TavilyToken     string `yaml:"tavilyToken"`
+	Group           struct {
 		Include []string `yaml:"include"`
 		Exclude []string `yaml:"exclude"`
 	} `yaml:"group"`
