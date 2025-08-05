@@ -39,11 +39,14 @@ func ExtractMessageContent(msg *model.GroupMessage) (string, bool) {
 			}
 		}
 	}
-	return extraOB11SegmentMessage(msg.Message, msg.GroupId), mention
+	return extraOB11SegmentMessage(msg.Message, msg.GroupId, 3), mention
 }
 
 // 消息链转文本
-func extraOB11SegmentMessage(segment []model.OB11Segment, groupid uint) string {
+func extraOB11SegmentMessage(segment []model.OB11Segment, groupid uint, limit int) string {
+	if limit <= 0 {
+		return ""
+	}
 	result := strings.Builder{}
 	groupUserInfo := messagechain.GroupUserInfo{}
 	for _, s := range segment {
@@ -88,7 +91,7 @@ func extraOB11SegmentMessage(segment []model.OB11Segment, groupid uint) string {
 				log.Println("error when getMessageDetail: ExtraOB11SegmentMessage")
 				continue
 			}
-			next := extraOB11SegmentMessage(seg, groupid)
+			next := extraOB11SegmentMessage(seg, groupid, limit-1)
 			result.WriteString("\n---↓以下为回复的消息↓---\n")
 			result.WriteString(next)
 			result.WriteString("\n---↑以上为回复的消息↑---\n")
