@@ -1,12 +1,11 @@
 package messagechain
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/jeanhua/PinBot/config"
+	"github.com/jeanhua/PinBot/utils"
 )
 
 type AIMessageData struct {
@@ -26,21 +25,9 @@ func AIMessage(groupUin uint, charactor string, text string) MessageChain {
 }
 
 func (mc *AIMessageData) Send() {
-	body, err := json.Marshal(mc)
+	httpUtil := utils.HttpUtil{}
+	err := httpUtil.RequestWithNoResponse(http.MethodPost, mc.urlpath, httpUtil.WithJsonBody(mc))
 	if err != nil {
-		fmt.Println("error when json marshal: Send GroupForwardChain")
-		return
+		log.Println("error when send aiMessage chain message")
 	}
-	client := &http.Client{}
-	request, err := http.NewRequest(http.MethodPost, mc.urlpath, bytes.NewReader(body))
-	if err != nil {
-		fmt.Println("error when create http request: Send GroupForwardChain")
-		return
-	}
-	resp, err := client.Do(request)
-	if err != nil {
-		fmt.Println("error when send http request: Send GroupForwardChain")
-		return
-	}
-	defer resp.Body.Close()
 }

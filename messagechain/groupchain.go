@@ -1,15 +1,14 @@
 package messagechain
 
 import (
-	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/jeanhua/PinBot/config"
+	"github.com/jeanhua/PinBot/utils"
 )
 
 type GroupChain struct {
@@ -85,21 +84,9 @@ func (mc *GroupChain) LocalImage(path string) MessageChain {
 }
 
 func (mc *GroupChain) Send() {
-	body, err := json.Marshal(mc)
+	httpUtil := utils.HttpUtil{}
+	err := httpUtil.RequestWithNoResponse(http.MethodPost, mc.urlpath, httpUtil.WithJsonBody(mc))
 	if err != nil {
-		fmt.Println("error when json marshal: Send GroupChain")
-		return
+		log.Println("error when send group chain message")
 	}
-	client := &http.Client{}
-	request, err := http.NewRequest(http.MethodPost, mc.urlpath, bytes.NewReader(body))
-	if err != nil {
-		fmt.Println("error when create http request: Send GroupChain")
-		return
-	}
-	resp, err := client.Do(request)
-	if err != nil {
-		fmt.Println("error when send http request: Send GroupChain")
-		return
-	}
-	defer resp.Body.Close()
 }
