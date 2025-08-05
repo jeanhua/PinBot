@@ -1,6 +1,10 @@
 debug: false
 admin_id: 2207739460
 test_group: 703250512
+
+# large model concurrency
+max_run: 5
+
 # napcat listen server
 napcatServerUrl: "http://localhost:7824"
 # local listen: localhost:port/Pinbot , for example: http://localhost:7823/Pinbot

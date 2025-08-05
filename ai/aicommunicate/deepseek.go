@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jeanhua/PinBot/ai/functioncall"
@@ -26,6 +27,7 @@ type DeepSeekAIBot_v3 struct {
 	theLastCommunicateTime time.Time
 	target                 int
 	uid                    uint
+	mutex                  sync.Mutex
 }
 
 // 创建新的DeepSeek AI V3实例
@@ -43,6 +45,7 @@ func NewDeepSeekV3(prompt, token string, target int, uid uint) *DeepSeekAIBot_v3
 		theLastCommunicateTime: time.Now(),
 		target:                 target,
 		uid:                    uid,
+		mutex:                  sync.Mutex{},
 	}
 }
 
@@ -112,6 +115,17 @@ func initFunctionTools() []*functionCallTool {
 
 // Ask 处理用户提问并返回AI的回答
 func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
+
+	ok := deepseek.mutex.TryLock()
+	if !ok {
+		return []*AiAnswer{
+			{
+				Response: "等待上一个请求完成，不要着急哦!",
+			},
+		}
+	}
+	defer deepseek.mutex.Unlock()
+
 	deepseek.checkNeedReset(question)
 	// 添加用户消息到对话链
 	deepseek.appendUserMessage(question)

@@ -18,6 +18,7 @@ import (
 
 var (
 	llmLock    sync.Mutex
+	currentRun = 0
 	aiModelMap = concurrent.NewConcurrentMap[uint, aicommunicate.AiModel]()
 	repeatMap  = concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]]()
 )
@@ -58,11 +59,19 @@ func defaultPluginOnGroup(message *model.GroupMessage) bool {
 
 // 处理AI聊天
 func handleGroupAIChat(msg *model.GroupMessage, text string) {
-	if !llmLock.TryLock() {
+	llmLock.Lock()
+	if currentRun > config.GetConfig().MaxRun {
+		llmLock.Unlock()
 		sendBusyResponse(msg)
 		return
 	}
-	defer llmLock.Unlock()
+	currentRun += 1
+	llmLock.Unlock()
+	defer func() {
+		llmLock.Lock()
+		currentRun -= 1
+		llmLock.Unlock()
+	}()
 	processGroupAIResponse(msg, text)
 }
 
@@ -71,7 +80,7 @@ func sendBusyResponse(msg *model.GroupMessage) {
 	chain := messagechain.Group(msg.GroupId)
 	chain.Reply(msg.MessageId)
 	chain.Mention(msg.UserId)
-	chain.Text(" 正在思考中，不要着急哦")
+	chain.Text(" 人太多了忙不过来了，待会再来问我哦!")
 	chain.Send()
 }
 
@@ -123,12 +132,19 @@ func sendReply(msg *model.GroupMessage, uid uint, response string) {
 
 // 处理私聊AI聊天
 func handlePrivateAIChat(msg *model.FriendMessage, text string) {
-	if !llmLock.TryLock() {
+	llmLock.Lock()
+	if currentRun > config.GetConfig().MaxRun {
+		llmLock.Unlock()
 		sendPrivateBusyResponse(msg.UserId)
 		return
 	}
-	defer llmLock.Unlock()
-
+	currentRun += 1
+	llmLock.Unlock()
+	defer func() {
+		llmLock.Lock()
+		currentRun--
+		llmLock.Unlock()
+	}()
 	processPrivateAIResponse(msg, text)
 }
 

@@ -9,6 +9,7 @@ import (
 
 type ConfigModel struct {
 	Debug            bool   `yaml:"debug"`
+	MaxRun           int    `yaml:"max_run"`
 	NapCatServerUrl  string `yaml:"napcatServerUrl"`
 	LocalListenPort  uint   `yaml:"localListenPort"`
 	AdminId          uint   `yaml:"admin_id"`
