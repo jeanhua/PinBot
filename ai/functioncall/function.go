@@ -23,16 +23,18 @@ var zanao = &utils.Zanao{}
 
 // 函数注册表
 var functionRegistry = map[string]FunctionHandler{
-	"browseHomepage": &BrowseHomepageHandler{},
-	"searchPost":     &SearchPostHandler{},
-	"viewPost":       &ViewPostHandler{},
-	"browseHot":      &BrowseHotHandler{},
-	"viewComments":   &ViewCommentsHandler{},
-	"speak":          &SpeakHandler{},
-	"webSearch":      &WebSearchHandler{},
-	"webExplore":     &WebExploreHandler{},
-	"getCurrentTime": &GetCurrentTimeHandler{},
-	"hateImage":      &HateImageHandler{},
+	"browseHomepage": &browseHomepageHandler{},
+	"searchPost":     &searchPostHandler{},
+	"viewPost":       &viewPostHandler{},
+	"browseHot":      &browseHotHandler{},
+	"viewComments":   &viewCommentsHandler{},
+	"speak":          &speakHandler{},
+	"webSearch":      &webSearchHandler{},
+	"webExplore":     &webExploreHandler{},
+	"getCurrentTime": &getCurrentTimeHandler{},
+	"hateImage":      &hateImageHandler{},
+	"searchMusic":    &searchMusicHandler{}, // 搜索网易云音乐
+	"shareMusic":     &shareMusicHandler{},  // 分享网易云音乐
 }
 
 const (
@@ -49,9 +51,9 @@ func CallFunction(name string, params map[string]any, uid uint, target int) (str
 	return handler.Handle(params, uid, target)
 }
 
-type BrowseHomepageHandler struct{}
+type browseHomepageHandler struct{}
 
-func (h *BrowseHomepageHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+func (h *browseHomepageHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
 	fromTime, err := getStringParam(params, "fromTime")
 	if err != nil {
 		return "", err
@@ -59,9 +61,9 @@ func (h *BrowseHomepageHandler) Handle(params map[string]any, uid uint, target i
 	return zanao.GetNewest(fromTime), nil
 }
 
-type SearchPostHandler struct{}
+type searchPostHandler struct{}
 
-func (h *SearchPostHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+func (h *searchPostHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
 	keywords, err := getStringParam(params, "keywords")
 	if err != nil {
 		return "", err
@@ -69,9 +71,9 @@ func (h *SearchPostHandler) Handle(params map[string]any, uid uint, target int) 
 	return zanao.Search(keywords), nil
 }
 
-type ViewPostHandler struct{}
+type viewPostHandler struct{}
 
-func (h *ViewPostHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+func (h *viewPostHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
 	postId, err := getStringParam(params, "postId")
 	if err != nil {
 		return "", err
@@ -79,15 +81,15 @@ func (h *ViewPostHandler) Handle(params map[string]any, uid uint, target int) (s
 	return zanao.GetDetail(postId), nil
 }
 
-type BrowseHotHandler struct{}
+type browseHotHandler struct{}
 
-func (h *BrowseHotHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+func (h *browseHotHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
 	return zanao.GetHot(), nil
 }
 
-type ViewCommentsHandler struct{}
+type viewCommentsHandler struct{}
 
-func (h *ViewCommentsHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+func (h *viewCommentsHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
 	postId, err := getStringParam(params, "postId")
 	if err != nil {
 		return "", err
@@ -95,9 +97,9 @@ func (h *ViewCommentsHandler) Handle(params map[string]any, uid uint, target int
 	return zanao.GetComments(postId), nil
 }
 
-type SpeakHandler struct{}
+type speakHandler struct{}
 
-func (h *SpeakHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+func (h *speakHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
 	text, err := getStringParam(params, "text")
 	if err != nil {
 		return "", err
@@ -114,9 +116,9 @@ func (h *SpeakHandler) Handle(params map[string]any, uid uint, target int) (stri
 	return "已成功给用户发送语音，你可以继续回复用户，或者输出一个空格结束", nil
 }
 
-type WebSearchHandler struct{}
+type webSearchHandler struct{}
 
-func (h *WebSearchHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+func (h *webSearchHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
 	query, err := getStringParam(params, "query")
 	if err != nil {
 		return "", err
@@ -131,9 +133,9 @@ func (h *WebSearchHandler) Handle(params map[string]any, uid uint, target int) (
 	return result, nil
 }
 
-type WebExploreHandler struct{}
+type webExploreHandler struct{}
 
-func (h *WebExploreHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+func (h *webExploreHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
 	linksInterface, ok := params["links"]
 	if !ok {
 		return "", fmt.Errorf("缺少参数: links")
@@ -148,16 +150,16 @@ func (h *WebExploreHandler) Handle(params map[string]any, uid uint, target int) 
 	return result, nil
 }
 
-type GetCurrentTimeHandler struct{}
+type getCurrentTimeHandler struct{}
 
-func (h *GetCurrentTimeHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+func (h *getCurrentTimeHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
 	now := time.Now().Local()
 	return fmt.Sprintf("当前时间是 %d年%d月%d日 %d时%d分 %s", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Weekday().String()), nil
 }
 
-type HateImageHandler struct{}
+type hateImageHandler struct{}
 
-func (h *HateImageHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+func (h *hateImageHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
 	userId, err := getStringParam(params, "uid")
 	if err != nil {
 		return "", err
@@ -174,6 +176,39 @@ func (h *HateImageHandler) Handle(params map[string]any, uid uint, target int) (
 	}
 	return "发送成功", nil
 }
+
+type searchMusicHandler struct{}
+
+func (*searchMusicHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+	keyword, err := getStringParam(params, "keyword")
+	if err != nil {
+		return "", err
+	}
+	searchMusicUtil := utils.MusicSearch{}
+	result := searchMusicUtil.Search(keyword)
+	return result, nil
+}
+
+type shareMusicHandler struct{}
+
+func (*shareMusicHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+	id, err := getStringParam(params, "id")
+	if err != nil {
+		return "", err
+	}
+	if target == TargetGroup {
+		chain := messagechain.Group(uid)
+		chain.Music(id)
+		chain.Send()
+	} else {
+		chain := messagechain.Friend(uid)
+		chain.Music(id)
+		chain.Send()
+	}
+	return "分享成功", nil
+}
+
+// tools
 
 func getStringParam(params map[string]any, key string) (string, error) {
 	val, ok := params[key].(string)

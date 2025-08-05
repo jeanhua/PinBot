@@ -16,3 +16,9 @@ func TestWebExplore(t *testing.T) {
 	resp := WebExplore([]string{"https://www.blog.jeanhua.cn"}, token)
 	log.Println(resp)
 }
+
+func TestMusic(t *testing.T) {
+	musicSearch := MusicSearch{}
+	result := musicSearch.Search("鹿晗")
+	log.Println(result)
+}

@@ -45,6 +45,17 @@ func (mc *FriendChain) Reply(id int) MessageChain {
 	return mc
 }
 
+func (mc *FriendChain) Music(id string) MessageChain {
+	mc.Message = append(mc.Message, MessageData{
+		Type: "music",
+		Data: map[string]interface{}{
+			"id":   id,
+			"type": "163",
+		},
+	})
+	return mc
+}
+
 func (mc *FriendChain) UrlImage(url string) MessageChain {
 	mc.Message = append(mc.Message, MessageData{
 		Type: "image",

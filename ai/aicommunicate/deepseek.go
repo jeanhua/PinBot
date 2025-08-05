@@ -103,6 +103,10 @@ func initFunctionTools() []*functionCallTool {
 
 	tools.addFunction(makeFunctionCallTools("hateImage", "发送讨厌表情包(表达生气)", withParams("userid", "用户的Id", "string", true)))
 
+	// 歌曲相关
+	tools.addFunction(makeFunctionCallTools("searchMusic", "搜索音乐", withParams("keyword", "关键词,歌曲名称或者歌手名字", "string", true)))
+	tools.addFunction(makeFunctionCallTools("shareMusic", "分享音乐", withParams("id", "音乐id,搜索到的音乐id", "string", true)))
+
 	return tools
 }
 
@@ -243,10 +247,13 @@ func (deepseek *DeepSeekAIBot_v3) appendToolResponse(toolCallId, content string)
 func request(msg []*message, model, token string, tools []*functionCallTool) (*commonResponseBody, error) {
 	debug := false
 	body := &commonRequestBody{
-		Model:    model,
-		Messages: msg,
-		Stream:   false,
-		Tools:    tools,
+		Model:       model,
+		Messages:    msg,
+		Stream:      false,
+		Tools:       tools,
+		Temperature: 0.9,
+		TopK:        66,
+		TopP:        0.8,
 	}
 
 	bodyBytes, err := json.Marshal(body)

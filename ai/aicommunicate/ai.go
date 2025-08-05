@@ -16,6 +16,9 @@ type commonRequestBody struct {
 	Stream          bool                `json:"stream"`
 	Enable_thinking bool                `json:"enable_thinking"`
 	Tools           []*functionCallTool `json:"tools"`
+	Temperature     float32             `json:"temperature"`
+	TopK            int                 `json:"top_k"`
+	TopP            float32             `json:"top_p"`
 }
 
 type message struct {
@@ -32,9 +35,8 @@ type functionCallTool struct {
 			Type       string          `json:"type"`
 			Properties *map[string]any `json:"properties"`
 		} `json:"parameters"`
-		Required             []string `json:"required"`
-		Strict               bool     `json:"strict"`
-		AdditionalProperties bool     `json:"additionalProperties"`
+		Required []string `json:"required"`
+		Strict   bool     `json:"strict"`
 	} `json:"function"`
 }
 
@@ -92,9 +94,8 @@ func makeFunctionCallTools(funcName, description string, param ...paramInfo) *fu
 				Type       string          "json:\"type\""
 				Properties *map[string]any "json:\"properties\""
 			} "json:\"parameters\""
-			Required             []string "json:\"required\""
-			Strict               bool     "json:\"strict\""
-			AdditionalProperties bool     `json:"additionalProperties"`
+			Required []string "json:\"required\""
+			Strict   bool     "json:\"strict\""
 		}{
 			Name:        funcName,
 			Description: description,
@@ -106,6 +107,7 @@ func makeFunctionCallTools(funcName, description string, param ...paramInfo) *fu
 				Properties: &propoties,
 			},
 			Required: requires,
+			Strict:   true,
 		},
 	}
 }

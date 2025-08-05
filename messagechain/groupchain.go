@@ -45,6 +45,17 @@ func (mc *GroupChain) Reply(id uint) MessageChain {
 	return mc
 }
 
+func (mc *GroupChain) Music(id string) MessageChain {
+	mc.Message = append(mc.Message, MessageData{
+		Type: "music",
+		Data: map[string]interface{}{
+			"id":   id,
+			"type": "163",
+		},
+	})
+	return mc
+}
+
 func (mc *GroupChain) Mention(userid uint) MessageChain {
 	mc.Message = append(mc.Message, MessageData{
 		Type: "at",

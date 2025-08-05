@@ -9,6 +9,9 @@ import (
 
 func TestStruct(t *testing.T) {
 	funcs := initFunctionTools()
-	jsonResult, _ := json.Marshal(funcs)
+	jsonResult, err := json.Marshal(funcs)
+	if err != nil {
+		panic(err)
+	}
 	testoutput.Output(string(jsonResult))
 }
