@@ -14,7 +14,7 @@ func examplePluginOnFriend(message *model.FriendMessage) bool {
 	return true
 }
 func examplePluginOnGroup(message *model.GroupMessage) bool {
-	text, _ := botcontext.ExtractMessageContent(message)
+	text, _ := botcontext.ExtractGroupMessageContent(message)
 	log.Printf("[群聊消息(%d)](%s):%s\n", message.GroupId, message.Sender.Nickname, text)
 	return true
 }

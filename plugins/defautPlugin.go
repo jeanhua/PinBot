@@ -23,7 +23,7 @@ var (
 	repeatMap  = concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]]()
 )
 
-var DefaultPlugin = botcontext.NewPluginContext("default plugin", defaultPluginOnFriend, defaultPluginOnGroup, "系统默认插件, AI智能体, 可以聊天，逛校园集市，检索和浏览网页, 群语音聊天, 发表情包等")
+var DefaultPlugin = botcontext.NewPluginContext("default plugin", defaultPluginOnFriend, defaultPluginOnGroup, "系统默认插件, AI智能体, 可以聊天，逛校园集市，检索和浏览网页, 群语音聊天, 发表情包, 搜索歌曲等")
 
 func defaultPluginOnFriend(message *model.FriendMessage) bool {
 	text := botcontext.ExtractPrivateMessageText(message)
@@ -32,7 +32,7 @@ func defaultPluginOnFriend(message *model.FriendMessage) bool {
 }
 
 func defaultPluginOnGroup(message *model.GroupMessage) bool {
-	text, mention := botcontext.ExtractMessageContent(message)
+	text, mention := botcontext.ExtractGroupMessageContent(message)
 	// 复读机
 	repeat, ok := repeatMap.Get(message.GroupId)
 	if ok {

@@ -211,6 +211,11 @@ func (deepseek *DeepSeekAIBot_v3) appendMessage(msg *message) {
 // 处理工具调用
 func (deepseek *DeepSeekAIBot_v3) handleToolCalls(choice *choice, responses []*AiAnswer) []*AiAnswer {
 	deepseek.appendMessage(&choice.Message)
+	if choice.Message.Content != "" {
+		responses = append(responses, &AiAnswer{
+			Response: choice.Message.Content,
+		})
+	}
 	// 处理工具调用
 	if err := deepseek.executeToolCalls(choice.Message.ToolCalls); err != nil {
 		log.Println("Error executing tool calls:", err)

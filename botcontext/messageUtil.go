@@ -24,7 +24,7 @@ func ExtractPrivateMessageText(msg *model.FriendMessage) string {
 }
 
 // 从群聊消息链中提取文本和是否AT机器人
-func ExtractMessageContent(msg *model.GroupMessage) (string, bool) {
+func ExtractGroupMessageContent(msg *model.GroupMessage) (string, bool) {
 	mention := false
 	for _, t := range msg.Message {
 		switch t.Type {
@@ -39,11 +39,32 @@ func ExtractMessageContent(msg *model.GroupMessage) (string, bool) {
 			}
 		}
 	}
-	return extraOB11SegmentMessage(msg.Message, msg.GroupId, 3), mention
+	return extractOB11SegmentMessage(msg.Message, msg.GroupId, 3), mention
+}
+
+func ExtractGroupRawMessage(msg *model.GroupMessage) (string, bool) {
+	mention := false
+	text := strings.Builder{}
+	for _, t := range msg.Message {
+		switch t.Type {
+		case "at":
+			mentionUser, ok := t.Data["qq"].(string)
+			if !ok {
+				log.Println("error when get mentionUser: ExtractMessageContent")
+				break
+			}
+			if mentionUser == fmt.Sprintf("%d", msg.SelfId) {
+				mention = true
+			}
+		case "text":
+			text.WriteString(t.Data["text"].(string))
+		}
+	}
+	return text.String(), mention
 }
 
 // 消息链转文本
-func extraOB11SegmentMessage(segment []model.OB11Segment, groupid uint, limit int) string {
+func extractOB11SegmentMessage(segment []model.OB11Segment, groupid uint, limit int) string {
 	if limit <= 0 {
 		return ""
 	}
@@ -91,7 +112,7 @@ func extraOB11SegmentMessage(segment []model.OB11Segment, groupid uint, limit in
 				log.Println("error when getMessageDetail: ExtraOB11SegmentMessage")
 				continue
 			}
-			next := extraOB11SegmentMessage(seg, groupid, limit-1)
+			next := extractOB11SegmentMessage(seg, groupid, limit-1)
 			result.WriteString("\n---↓以下为回复的消息↓---\n")
 			result.WriteString(next)
 			result.WriteString("\n---↑以上为回复的消息↑---\n")
