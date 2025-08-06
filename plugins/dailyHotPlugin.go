@@ -18,7 +18,7 @@ func dailyHotOnFriend(message *model.FriendMessage) bool {
 }
 
 func dailyHotOnGroup(message *model.GroupMessage) bool {
-	text, mention := botcontext.ExtractGroupMessageContent(message)
+	text, mention := botcontext.ExtractGroupRawMessage(message)
 	if !mention {
 		return true
 	}
