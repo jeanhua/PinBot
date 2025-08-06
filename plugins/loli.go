@@ -20,7 +20,7 @@ func loliPluginOnFriend(message *model.FriendMessage) bool {
 	return true
 }
 func loliPluginOnGroup(message *model.GroupMessage) bool {
-	text, mention := botcontext.ExtractGroupMessageContent(message)
+	text, mention := botcontext.ExtractGroupRawMessage(message)
 	if !mention {
 		return true
 	}
