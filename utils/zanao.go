@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -260,6 +261,7 @@ func (z *Zanao) GetComments(id string) string {
 		log.Println(err)
 		return ""
 	}
+	sort.Sort(&comments)
 	var back strings.Builder
 	back.WriteString(contentHeader)
 	if len(comments.Data.List) > 10 {
@@ -328,4 +330,16 @@ type comments struct {
 			} `json:"reply_list"`
 		} `json:"list"`
 	} `json:"data"`
+}
+
+func (c *comments) Len() int {
+	return len(c.Data.List)
+}
+
+func (c *comments) Less(i, j int) bool {
+	return c.Data.List[i].LikeNum > c.Data.List[j].LikeNum
+}
+
+func (c *comments) Swap(i, j int) {
+	c.Data.List[i], c.Data.List[j] = c.Data.List[j], c.Data.List[i]
 }
