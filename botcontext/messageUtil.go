@@ -6,7 +6,6 @@ import (
 	"log"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
@@ -139,23 +138,19 @@ func SendShortReply(msg *model.GroupMessage, uid uint, response string) {
 }
 
 // 发送长回复
-func SendLongReply(msg *model.GroupMessage, rreply []rune, replyLength int) {
+func SendLongReply(msg *model.GroupMessage, reply string) {
 	forward := messagechain.GroupForward(msg.GroupId, "聊天记录", fmt.Sprintf("%d", msg.SelfId), "江颦")
 	chain := messagechain.Group(msg.GroupId)
 	chain.Mention(msg.UserId)
 	chain.Send()
-
-	for i := 0; i <= replyLength/500; i++ {
-		start := i * 500
-		end := (i + 1) * 500
-
-		if end < replyLength {
-			forward.Text(string(rreply[start:end]))
-		} else if start < replyLength {
-			forward.Text(string(rreply[start:]))
+	rreply := []rune(reply)
+	for i := 0; i < len(rreply); i += 500 {
+		end := i + 500
+		if end > len(rreply) {
+			end = len(rreply)
 		}
+		segment := string(rreply[i:end])
+		forward.Text(segment)
 	}
-
-	time.Sleep(500 * time.Millisecond)
 	forward.Send()
 }

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jeanhua/PinBot/ai/functioncall"
+	"github.com/jeanhua/PinBot/botcontext"
 	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
 )
@@ -115,16 +116,38 @@ func initFunctionTools() []*functionCallTool {
 
 func (deepseek *DeepSeekAIBot_v3) SendMsg(msg string, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
 	if deepseek.target == functioncall.TargetFriend {
-		chain := messagechain.Friend(friend_msg.Sender.UserId)
-		chain.Reply(friend_msg.MessageId)
-		chain.Text(msg)
-		chain.Send()
+		if len(msg) <= 500 {
+			chain := messagechain.Friend(friend_msg.Sender.UserId)
+			chain.Reply(friend_msg.MessageId)
+			chain.Text(msg)
+			chain.Send()
+		} else {
+			mutMsg := []rune(msg)
+			for i := 0; i < len(mutMsg); i += 500 {
+				end := i + 500
+				if end > len(mutMsg) {
+					end = len(mutMsg)
+				}
+				segment := string(mutMsg[i:end])
+
+				chain := messagechain.Friend(friend_msg.Sender.UserId)
+				if i == 0 {
+					chain.Reply(friend_msg.MessageId)
+				}
+				chain.Text(segment)
+				chain.Send()
+			}
+		}
 	} else {
-		chain := messagechain.Group(group_msg.GroupId)
-		chain.Reply(group_msg.MessageId)
-		chain.Mention(group_msg.Sender.UserId)
-		chain.Text(" " + msg)
-		chain.Send()
+		if len(msg) <= 500 {
+			chain := messagechain.Group(group_msg.GroupId)
+			chain.Reply(group_msg.MessageId)
+			chain.Mention(group_msg.Sender.UserId)
+			chain.Text(" " + msg)
+			chain.Send()
+		} else {
+			botcontext.SendLongReply(group_msg, msg)
+		}
 	}
 }
 
