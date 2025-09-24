@@ -1,13 +1,13 @@
 package aicommunicate
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/jeanhua/PinBot/model"
+)
 
 type AiModel interface {
-	Ask(question string) []*AiAnswer
-}
-
-type AiAnswer struct {
-	Response string `json:"response"`
+	Ask(question string, group_msg *model.GroupMessage, friend_msg *model.FriendMessage)
 }
 
 type commonRequestBody struct {

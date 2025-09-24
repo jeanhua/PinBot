@@ -35,7 +35,7 @@ func (mc *FriendChain) Text(text string) MessageChain {
 	return mc
 }
 
-func (mc *FriendChain) Reply(id int) MessageChain {
+func (mc *FriendChain) Reply(id uint) MessageChain {
 	mc.Message = append(mc.Message, MessageData{
 		Type: "reply",
 		Data: map[string]interface{}{

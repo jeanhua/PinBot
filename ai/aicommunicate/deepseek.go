@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/jeanhua/PinBot/ai/functioncall"
+	"github.com/jeanhua/PinBot/messagechain"
+	"github.com/jeanhua/PinBot/model"
 )
 
 const (
@@ -26,12 +28,11 @@ type DeepSeekAIBot_v3 struct {
 	tools                  []*functionCallTool
 	theLastCommunicateTime time.Time
 	target                 int
-	uid                    uint
 	mutex                  sync.Mutex
 }
 
 // 创建新的DeepSeek AI V3实例
-func NewDeepSeekV3(prompt, token string, target int, uid uint) *DeepSeekAIBot_v3 {
+func NewDeepSeekV3(prompt, token string, target int) *DeepSeekAIBot_v3 {
 	return &DeepSeekAIBot_v3{
 		messageChain: []*message{
 			{
@@ -44,7 +45,6 @@ func NewDeepSeekV3(prompt, token string, target int, uid uint) *DeepSeekAIBot_v3
 		SystemPrompt:           prompt,
 		theLastCommunicateTime: time.Now(),
 		target:                 target,
-		uid:                    uid,
 		mutex:                  sync.Mutex{},
 	}
 }
@@ -113,23 +113,34 @@ func initFunctionTools() []*functionCallTool {
 	return tools
 }
 
+func (deepseek *DeepSeekAIBot_v3) SendMsg(msg string, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
+	if deepseek.target == functioncall.TargetFriend {
+		chain := messagechain.Friend(friend_msg.Sender.UserId)
+		chain.Reply(friend_msg.MessageId)
+		chain.Text(msg)
+		chain.Send()
+	} else {
+		chain := messagechain.Group(group_msg.GroupId)
+		chain.Reply(group_msg.MessageId)
+		chain.Mention(group_msg.Sender.UserId)
+		chain.Text(" " + msg)
+		chain.Send()
+	}
+}
+
 // Ask 处理用户提问并返回AI的回答
-func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
+func (deepseek *DeepSeekAIBot_v3) Ask(question string, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
 
 	ok := deepseek.mutex.TryLock()
 	if !ok {
-		return []*AiAnswer{
-			{
-				Response: "等待上一个请求完成，不要着急哦!",
-			},
-		}
+		deepseek.SendMsg("等待上一个请求完成，不要着急哦!", group_msg, friend_msg)
+		return
 	}
 	defer deepseek.mutex.Unlock()
 
 	deepseek.checkNeedReset(question)
 	// 添加用户消息到对话链
 	deepseek.appendUserMessage(question)
-	var responses []*AiAnswer
 
 	for {
 		// 发送请求获取AI响应
@@ -142,26 +153,23 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string) []*AiAnswer {
 
 		if err != nil || len(answer.Choices) == 0 {
 			log.Println("Request failed:", err)
-			return nil
+			deepseek.SendMsg("抱歉，我遇到了一些问题，请稍后再试。", group_msg, friend_msg)
+			return
 		}
 
 		choice := answer.Choices[0]
 
 		// 处理工具调用
 		if len(choice.Message.ToolCalls) > 0 {
-			responses = deepseek.handleToolCalls(&choice, responses)
+			deepseek.handleToolCalls(&choice, group_msg, friend_msg)
 			continue
 		}
 
 		// 处理普通响应
-		responses = append(responses, &AiAnswer{
-			Response: choice.Message.Content,
-		})
+		deepseek.SendMsg(choice.Message.Content, group_msg, friend_msg)
 		deepseek.appendMessage(&choice.Message)
 		break
 	}
-
-	return responses
 }
 
 // 检查是否需要重置对话
@@ -209,23 +217,21 @@ func (deepseek *DeepSeekAIBot_v3) appendMessage(msg *message) {
 }
 
 // 处理工具调用
-func (deepseek *DeepSeekAIBot_v3) handleToolCalls(choice *choice, responses []*AiAnswer) []*AiAnswer {
+func (deepseek *DeepSeekAIBot_v3) handleToolCalls(choice *choice, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
 	deepseek.appendMessage(&choice.Message)
 	if choice.Message.Content != "" {
-		responses = append(responses, &AiAnswer{
-			Response: choice.Message.Content,
-		})
+		deepseek.SendMsg(choice.Message.Content, group_msg, friend_msg)
 	}
 	// 处理工具调用
-	if err := deepseek.executeToolCalls(choice.Message.ToolCalls); err != nil {
+	if err := deepseek.executeToolCalls(choice.Message.ToolCalls, group_msg, friend_msg); err != nil {
 		log.Println("Error executing tool calls:", err)
-		return nil
+		deepseek.SendMsg("function call 调用出现问题", group_msg, friend_msg)
+		return
 	}
-	return responses
 }
 
 // 执行工具调用
-func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []toolCall) error {
+func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []toolCall, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) error {
 	for _, toolCall := range toolCalls {
 		var paramMap map[string]any
 		if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &paramMap); err != nil {
@@ -233,12 +239,17 @@ func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []toolCall) error {
 			log.Println(toolCall.Function.Arguments)
 			return err
 		}
-		callResult, err := functioncall.CallFunction(toolCall.Function.Name, paramMap, deepseek.uid, deepseek.target)
+		var uid uint
+		if deepseek.target == functioncall.TargetFriend {
+			uid = friend_msg.Sender.UserId
+		} else {
+			uid = group_msg.GroupId
+		}
+		callResult, err := functioncall.CallFunction(toolCall.Function.Name, paramMap, uid, deepseek.target)
 		if err != nil {
 			log.Println("CallFunction failed:", err)
 			callResult = "function call 调用失败"
 		}
-
 		deepseek.appendToolResponse(toolCall.Id, callResult)
 	}
 	return nil
