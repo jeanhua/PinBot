@@ -83,11 +83,22 @@ func (mc *GroupChain) LocalImage(path string) MessageChain {
 		log.Println("error when open file: MessageChain: LocalImage", err)
 		return mc
 	}
-	base64 := base64.StdEncoding.EncodeToString(file)
+	bs64code := base64.StdEncoding.EncodeToString(file)
 	mc.Message = append(mc.Message, MessageData{
 		Type: "image",
 		Data: map[string]interface{}{
-			"file":    "base64://" + base64,
+			"file":    "base64://" + bs64code,
+			"summary": "[图片]",
+		},
+	})
+	return mc
+}
+
+func (mc *GroupChain) Base64Image(code string) MessageChain {
+	mc.Message = append(mc.Message, MessageData{
+		Type: "image",
+		Data: map[string]interface{}{
+			"file":    "base64://" + code,
 			"summary": "[图片]",
 		},
 	})

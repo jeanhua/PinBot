@@ -32,6 +32,8 @@ ai_token: # 大模型开放平台token
 
 tavilyToken: # tavily api token
 
+scu2class_token: # 四川大学第二课堂鉴权token
+
 # 帮助：发送 /help回复的内容
 help_words:
   group: | 

@@ -2,7 +2,8 @@ package main
 
 import (
 	"github.com/jeanhua/PinBot/botcontext"
-	"github.com/jeanhua/PinBot/plugins"
+	"github.com/jeanhua/PinBot/plugins/defaultplugin"
+	"github.com/jeanhua/PinBot/plugins/exampleplugin"
 )
 
 func main() {
@@ -17,17 +18,16 @@ func main() {
 **/
 func registerPlugin(instance *botcontext.BotContext) {
 	// 示例插件：打印消息
-	instance.Plugins.AddPlugin(plugins.ExamplePlugin.SetPrivate())
+	instance.Plugins.AddPlugin(exampleplugin.ExamplePlugin.SetPrivate())
 
 	/* -----------在这里注册插件----------- */
 	//
-	instance.Plugins.AddPlugin(plugins.DailyHotPlugin)
-	instance.Plugins.AddPlugin(plugins.LoliPlugin)
+
 	//
 	/* -----------在上面注册插件----------- */
 
 	// 系统默认插件，包含AI聊天
-	instance.Plugins.AddPlugin(plugins.DefaultPlugin)
+	instance.Plugins.AddPlugin(defaultplugin.DefaultPlugin)
 }
 
 /**------------------------------**/

@@ -17,6 +17,7 @@ type ConfigModel struct {
 	ZanaoToken      string `yaml:"zanao_token"`
 	AIToken         string `yaml:"ai_token"`
 	TavilyToken     string `yaml:"tavilyToken"`
+	SCU2ClassToken  string `yaml:"scu2class_token"`
 	Group           struct {
 		Include []string `yaml:"include"`
 		Exclude []string `yaml:"exclude"`

@@ -35,6 +35,10 @@ var functionRegistry = map[string]FunctionHandler{
 	"hateImage":      &hateImageHandler{},   // 讨厌表情包
 	"searchMusic":    &searchMusicHandler{}, // 搜索网易云音乐
 	"shareMusic":     &shareMusicHandler{},  // 分享网易云音乐
+	// 第二课堂相关
+	"scu2ClassSearch": &scu2ClassSearchHandler{},
+	"scu2ClassList":   &scu2ClassListHandler{},
+	"scu2ClassShare":  &scu2ClassShareHandler{},
 }
 
 const (
@@ -206,6 +210,61 @@ func (*shareMusicHandler) Handle(params map[string]any, uid uint, target int) (s
 		chain.Send()
 	}
 	return "分享成功", nil
+}
+
+// 四川大学第二课堂
+type scu2ClassSearchHandler struct{}
+
+func (*scu2ClassSearchHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+	scu2class := utils.NewSCU2Class(config.GetConfig().SCU2ClassToken)
+	keyword, err := getStringParam(params, "keyword")
+	if err != nil {
+		return "", err
+	}
+	result := scu2class.Search(keyword)
+	return result, nil
+}
+
+type scu2ClassListHandler struct{}
+
+func (*scu2ClassListHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+	scu2class := utils.NewSCU2Class(config.GetConfig().SCU2ClassToken)
+	activityLibId, err := getStringParam(params, "activityLibId")
+	if err != nil {
+		return "", err
+	}
+	result := scu2class.List(activityLibId)
+	return result, nil
+}
+
+type scu2ClassShareHandler struct{}
+
+func (*scu2ClassShareHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
+	scu2class := utils.NewSCU2Class(config.GetConfig().SCU2ClassToken)
+	activityId, err := getStringParam(params, "activityId")
+	if err != nil {
+		return "", err
+	}
+	qrIn, qrOut, err := scu2class.GenQRCode(activityId)
+	if err != nil {
+		return "", err
+	}
+	if target == TargetGroup {
+		chain := messagechain.Group(uid)
+		chain.Text("签到码:\n")
+		chain.Base64Image(qrIn)
+		chain.Text("签退码:\n")
+		chain.Base64Image(qrOut)
+		chain.Send()
+	} else {
+		chain := messagechain.Friend(uid)
+		chain.Text("签到码:\n")
+		chain.Base64Image(qrIn)
+		chain.Text("签退码:\n")
+		chain.Base64Image(qrOut)
+		chain.Send()
+	}
+	return "发送成功", nil
 }
 
 // tools

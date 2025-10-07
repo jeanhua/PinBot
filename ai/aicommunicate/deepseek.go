@@ -111,6 +111,11 @@ func initFunctionTools() []*functionCallTool {
 	tools.addFunction(makeFunctionCallTools("searchMusic", "搜索音乐", withParams("query", "关键词,歌曲名称或者歌手名字", "string", true)))
 	tools.addFunction(makeFunctionCallTools("shareMusic", "分享音乐", withParams("id", "音乐id,搜索到的音乐id", "string", true)))
 
+	// 第二课堂相关
+	tools.addFunction(makeFunctionCallTools("scu2ClassSearch", "检索第二课堂系列活动", withParams("keyword", "关键词,活动名称的关键词", "string", true)))
+	tools.addFunction(makeFunctionCallTools("scu2ClassList", "通过系列活动ID获取具体活动", withParams("activityLibId", "系列活动ID", "string", true)))
+	tools.addFunction(makeFunctionCallTools("scu2ClassShare", "发送具体活动的签到签退二维码码", withParams("activityId", "活动ID", "string", true)))
+
 	return tools
 }
 

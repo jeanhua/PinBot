@@ -22,3 +22,13 @@ func TestMusic(t *testing.T) {
 	result := musicSearch.Search("鹿晗")
 	log.Println(result)
 }
+
+func TestSCU2Class_Search(t *testing.T) {
+	scu2class := NewSCU2Class("xxx")
+	c_in, c_out, err := scu2class.GenQRCode("231")
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(c_in)
+	log.Println(c_out)
+}
