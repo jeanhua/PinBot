@@ -120,14 +120,14 @@ func initFunctionTools() []*functionCallTool {
 }
 
 func (deepseek *DeepSeekAIBot_v3) SendMsg(msg string, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
+	mutMsg := []rune(msg)
 	if deepseek.target == functioncall.TargetFriend {
-		if len(msg) <= 500 {
+		if len(mutMsg) <= 500 {
 			chain := messagechain.Friend(friend_msg.Sender.UserId)
 			chain.Reply(friend_msg.MessageId)
 			chain.Text(msg)
 			chain.Send()
 		} else {
-			mutMsg := []rune(msg)
 			for i := 0; i < len(mutMsg); i += 500 {
 				end := i + 500
 				if end > len(mutMsg) {
@@ -144,7 +144,7 @@ func (deepseek *DeepSeekAIBot_v3) SendMsg(msg string, group_msg *model.GroupMess
 			}
 		}
 	} else {
-		if len(msg) <= 500 {
+		if len(mutMsg) <= 500 {
 			chain := messagechain.Group(group_msg.GroupId)
 			chain.Reply(group_msg.MessageId)
 			chain.Mention(group_msg.Sender.UserId)
