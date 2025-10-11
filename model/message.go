@@ -64,7 +64,7 @@ type Response struct {
 
 type MessageDetail struct {
 	Status  string `json:"status"`
-	Retcode int    `json:"retcode"`
+	RetCode int    `json:"retcode"`
 	Data    struct {
 		SelfID      int64  `json:"self_id"`
 		UserID      int64  `json:"user_id"`

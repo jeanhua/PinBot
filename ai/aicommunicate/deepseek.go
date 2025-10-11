@@ -22,7 +22,7 @@ const (
 	deepSeekModel = "deepseek-chat"
 )
 
-type DeepSeekAIBot_v3 struct {
+type DeepseekAIBotV3 struct {
 	token                  string
 	SystemPrompt           string
 	messageChain           []*message
@@ -32,9 +32,9 @@ type DeepSeekAIBot_v3 struct {
 	mutex                  sync.Mutex
 }
 
-// 创建新的DeepSeek AI V3实例
-func NewDeepSeekV3(prompt, token string, target int) *DeepSeekAIBot_v3 {
-	return &DeepSeekAIBot_v3{
+// NewDeepSeekV3 创建新的DeepSeek AI V3实例
+func NewDeepSeekV3(prompt, token string, target int) *DeepseekAIBotV3 {
+	return &DeepseekAIBotV3{
 		messageChain: []*message{
 			{
 				Role:    "system",
@@ -105,7 +105,7 @@ func initFunctionTools() []*functionCallTool {
 
 	tools.addFunction(makeFunctionCallTools("getCurrentTime", "获取当前时间"))
 
-	tools.addFunction(makeFunctionCallTools("hateImage", "发送讨厌表情包(表达生气)", withParams("userid", "用户的Id", "string", true)))
+	tools.addFunction(makeFunctionCallTools("hateImage", "发送讨厌表情包(表达生气，表情包内容为动漫卡通指着对方头像说：爬！)", withParams("userid", "用户的Id", "string", true)))
 
 	// 歌曲相关
 	tools.addFunction(makeFunctionCallTools("searchMusic", "搜索音乐", withParams("query", "关键词,歌曲名称或者歌手名字", "string", true)))
@@ -114,12 +114,12 @@ func initFunctionTools() []*functionCallTool {
 	// 第二课堂相关
 	tools.addFunction(makeFunctionCallTools("scu2ClassSearch", "检索第二课堂系列活动", withParams("keyword", "关键词,活动名称的关键词", "string", true)))
 	tools.addFunction(makeFunctionCallTools("scu2ClassList", "通过系列活动ID获取具体活动", withParams("activityLibId", "系列活动ID", "string", true)))
-	tools.addFunction(makeFunctionCallTools("scu2ClassShare", "发送具体活动的签到签退二维码码", withParams("activityId", "活动ID", "string", true)))
+	tools.addFunction(makeFunctionCallTools("scu2ClassShare", "发送具体活动的签到签退二维码", withParams("activityId", "活动ID", "string", true)))
 
 	return tools
 }
 
-func (deepseek *DeepSeekAIBot_v3) SendMsg(msg string, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
+func (deepseek *DeepseekAIBotV3) SendMsg(msg string, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
 	mutMsg := []rune(msg)
 	if deepseek.target == functioncall.TargetFriend {
 		if len(mutMsg) <= 500 {
@@ -151,13 +151,13 @@ func (deepseek *DeepSeekAIBot_v3) SendMsg(msg string, group_msg *model.GroupMess
 			chain.Text(" " + msg)
 			chain.Send()
 		} else {
-			botcontext.SendLongReply(group_msg, msg)
+			botcontext.SendLongReply(group_msg, mutMsg)
 		}
 	}
 }
 
 // Ask 处理用户提问并返回AI的回答
-func (deepseek *DeepSeekAIBot_v3) Ask(question string, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
+func (deepseek *DeepseekAIBotV3) Ask(question string, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
 
 	ok := deepseek.mutex.TryLock()
 	if !ok {
@@ -200,8 +200,8 @@ func (deepseek *DeepSeekAIBot_v3) Ask(question string, group_msg *model.GroupMes
 	}
 }
 
-// 检查是否需要重置对话
-func (deepseek *DeepSeekAIBot_v3) checkNeedReset(question string) {
+// checkNeedReset 检查是否需要重置对话
+func (deepseek *DeepseekAIBotV3) checkNeedReset(question string) {
 	// 三小时自动重置对话
 	if deepseek.theLastCommunicateTime.Add(time.Hour * 3).Before(time.Now()) {
 		deepseek.resetConversation()
@@ -214,15 +214,15 @@ func (deepseek *DeepSeekAIBot_v3) checkNeedReset(question string) {
 	}
 }
 
-// 自动新对话
-func (deepseek *DeepSeekAIBot_v3) autoNewCommunication() {
+// autoNewCommunication 自动新对话
+func (deepseek *DeepseekAIBotV3) autoNewCommunication() {
 	if len(deepseek.messageChain) >= 120 {
 		deepseek.resetConversation()
 	}
 }
 
-// 重置对话历史
-func (deepseek *DeepSeekAIBot_v3) resetConversation() {
+// resetConversation 重置对话历史
+func (deepseek *DeepseekAIBotV3) resetConversation() {
 	deepseek.messageChain = []*message{
 		{
 			Role:    "system",
@@ -231,21 +231,21 @@ func (deepseek *DeepSeekAIBot_v3) resetConversation() {
 	}
 }
 
-// 添加用户消息到对话链
-func (deepseek *DeepSeekAIBot_v3) appendUserMessage(content string) {
+// appendUserMessage 添加用户消息到对话链
+func (deepseek *DeepseekAIBotV3) appendUserMessage(content string) {
 	deepseek.messageChain = append(deepseek.messageChain, &message{
 		Role:    "user",
 		Content: content,
 	})
 }
 
-// 添加消息
-func (deepseek *DeepSeekAIBot_v3) appendMessage(msg *message) {
+// appendMessage 添加消息
+func (deepseek *DeepseekAIBotV3) appendMessage(msg *message) {
 	deepseek.messageChain = append(deepseek.messageChain, msg)
 }
 
-// 处理工具调用
-func (deepseek *DeepSeekAIBot_v3) handleToolCalls(choice *choice, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
+// handleToolCalls 处理工具调用
+func (deepseek *DeepseekAIBotV3) handleToolCalls(choice *choice, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
 	deepseek.appendMessage(&choice.Message)
 	if choice.Message.Content != "" {
 		deepseek.SendMsg(choice.Message.Content, group_msg, friend_msg)
@@ -258,8 +258,8 @@ func (deepseek *DeepSeekAIBot_v3) handleToolCalls(choice *choice, group_msg *mod
 	}
 }
 
-// 执行工具调用
-func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []toolCall, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) error {
+// executeToolCalls 执行工具调用
+func (deepseek *DeepseekAIBotV3) executeToolCalls(toolCalls []toolCall, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) error {
 	for _, toolCall := range toolCalls {
 		var paramMap map[string]any
 		if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &paramMap); err != nil {
@@ -283,8 +283,8 @@ func (deepseek *DeepSeekAIBot_v3) executeToolCalls(toolCalls []toolCall, group_m
 	return nil
 }
 
-// 添加工具响应到对话链
-func (deepseek *DeepSeekAIBot_v3) appendToolResponse(toolCallId, content string) {
+// appendToolResponse 添加工具响应到对话链
+func (deepseek *DeepseekAIBotV3) appendToolResponse(toolCallId, content string) {
 	deepseek.messageChain = append(deepseek.messageChain, &message{
 		Role:       "tool",
 		Content:    content,
@@ -292,9 +292,8 @@ func (deepseek *DeepSeekAIBot_v3) appendToolResponse(toolCallId, content string)
 	})
 }
 
-// 发送请求到AI接口
+// request 发送请求到AI接口
 func request(msg []*message, model, token string, tools []*functionCallTool) (*commonResponseBody, error) {
-	debug := false
 	body := &commonRequestBody{
 		Model:       model,
 		Messages:    msg,
@@ -308,10 +307,6 @@ func request(msg []*message, model, token string, tools []*functionCallTool) (*c
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("marshal request body failed: %w", err)
-	}
-
-	if debug {
-		log.Println("Request body:", string(bodyBytes))
 	}
 
 	req, err := http.NewRequest(http.MethodPost, requestUrl, bytes.NewBuffer(bodyBytes))
@@ -337,10 +332,6 @@ func request(msg []*message, model, token string, tools []*functionCallTool) (*c
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("read response body failed: %w", err)
-	}
-
-	if debug {
-		log.Println("Response body:", string(respBytes))
 	}
 
 	result := &commonResponseBody{}

@@ -11,14 +11,14 @@ type AiModel interface {
 }
 
 type commonRequestBody struct {
-	Model           string              `json:"model"`
-	Messages        []*message          `json:"messages"`
-	Stream          bool                `json:"stream"`
-	Enable_thinking bool                `json:"enable_thinking"`
-	Tools           []*functionCallTool `json:"tools"`
-	Temperature     float32             `json:"temperature"`
-	TopK            int                 `json:"top_k"`
-	TopP            float32             `json:"top_p"`
+	Model          string              `json:"model"`
+	Messages       []*message          `json:"messages"`
+	Stream         bool                `json:"stream"`
+	EnableThinking bool                `json:"enable_thinking"`
+	Tools          []*functionCallTool `json:"tools"`
+	Temperature    float32             `json:"temperature"`
+	TopK           int                 `json:"top_k"`
+	TopP           float32             `json:"top_p"`
 }
 
 type message struct {
@@ -60,20 +60,20 @@ type toolCall struct {
 }
 
 func makeFunctionCallTools(funcName, description string, param ...paramInfo) *functionCallTool {
-	var propoties = map[string]any{}
-	requires := []string{}
-	const arrayPrefex = "array:"
+	var properties = map[string]any{}
+	var requires []string
+	const arrayPrefix = "array:"
 	for _, p := range param {
-		if strings.HasPrefix(p.Type, arrayPrefex) {
-			propoties[p.Name] = &map[string]any{
+		if strings.HasPrefix(p.Type, arrayPrefix) {
+			properties[p.Name] = &map[string]any{
 				"type": "array",
 				"items": map[string]string{
-					"type": strings.TrimPrefix(p.Type, arrayPrefex),
+					"type": strings.TrimPrefix(p.Type, arrayPrefix),
 				},
 				"description": p.Description,
 			}
 		} else {
-			propoties[p.Name] = &map[string]any{
+			properties[p.Name] = &map[string]any{
 				"type":        p.Type,
 				"description": p.Description,
 			}
@@ -101,7 +101,7 @@ func makeFunctionCallTools(funcName, description string, param ...paramInfo) *fu
 				Properties *map[string]any "json:\"properties\""
 			}{
 				Type:       "object",
-				Properties: &propoties,
+				Properties: &properties,
 			},
 			Required: requires,
 			Strict:   true,

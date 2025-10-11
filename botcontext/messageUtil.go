@@ -138,18 +138,17 @@ func SendShortReply(msg *model.GroupMessage, uid uint, response string) {
 }
 
 // 发送长回复
-func SendLongReply(msg *model.GroupMessage, reply string) {
+func SendLongReply(msg *model.GroupMessage, reply []rune) {
 	forward := messagechain.GroupForward(msg.GroupId, "聊天记录", fmt.Sprintf("%d", msg.SelfId), "江颦")
 	chain := messagechain.Group(msg.GroupId)
 	chain.Mention(msg.UserId)
 	chain.Send()
-	rreply := []rune(reply)
-	for i := 0; i < len(rreply); i += 500 {
+	for i := 0; i < len(reply); i += 500 {
 		end := i + 500
-		if end > len(rreply) {
-			end = len(rreply)
+		if end > len(reply) {
+			end = len(reply)
 		}
-		segment := string(rreply[i:end])
+		segment := string(reply[i:end])
 		forward.Text(segment)
 	}
 	forward.Send()
