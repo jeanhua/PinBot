@@ -20,5 +20,5 @@ func (bot *BotContext) onPrivateMessage(msg *model.FriendMessage) {
 		return
 	}
 
-	bot.Plugins.excuteFriend(msg)
+	bot.Plugins.ExecuteFriend(msg)
 }

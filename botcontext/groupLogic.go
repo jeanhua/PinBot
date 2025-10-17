@@ -20,5 +20,5 @@ func (bot *BotContext) onGroupMessage(msg *model.GroupMessage) {
 			return
 		}
 	}
-	bot.Plugins.excuteGroup(msg)
+	bot.Plugins.ExecuteGroup(msg)
 }

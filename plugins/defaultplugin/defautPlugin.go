@@ -14,67 +14,86 @@ import (
 	"github.com/jeanhua/PinBot/model"
 )
 
-var (
+type Plugin struct {
 	llmLock    sync.Mutex
-	currentRun = 0
-	aiModelMap = concurrent.NewConcurrentMap[uint, aicommunicate.AiModel]()
-	repeatMap  = concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]]()
-)
+	currentRun int
+	aiModelMap *concurrent.ConcurrentMap[uint, aicommunicate.AiModel]
+	repeatMap  *concurrent.ConcurrentMap[uint, tuple.Tuple[int, string]]
+}
 
-var DefaultPlugin = botcontext.NewPluginContext("default plugin", defaultPluginOnFriend, defaultPluginOnGroup, "系统默认插件, AI智能体, 可以聊天，逛校园集市，检索和浏览网页, 群语音聊天, 发表情包, 搜索歌曲等")
+func NewPlugin() *Plugin {
+	return &Plugin{
+		llmLock:    sync.Mutex{},
+		currentRun: 0,
+		aiModelMap: concurrent.NewConcurrentMap[uint, aicommunicate.AiModel](),
+		repeatMap:  concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]](),
+	}
+}
 
-func defaultPluginOnFriend(message *model.FriendMessage) bool {
+func (p *Plugin) Name() string {
+	return "default plugin"
+}
+
+func (p *Plugin) Description() string {
+	return "系统默认插件, AI智能体, 可以聊天，逛校园集市，检索和浏览网页, 群语音聊天, 发表情包, 搜索歌曲等"
+}
+
+func (p *Plugin) IsPublic() bool {
+	return true
+}
+
+func (p *Plugin) OnFriendMsg(message *model.FriendMessage) bool {
 	text := botcontext.ExtractPrivateMessageText(message)
-	handlePrivateAIChat(message, text)
+	p.handlePrivateAIChat(message, text)
 	return false
 }
 
-func defaultPluginOnGroup(message *model.GroupMessage) bool {
+func (p *Plugin) OnGroupMsg(message *model.GroupMessage) bool {
 	text, mention := botcontext.ExtractGroupMessageContent(message)
 	// 复读机
-	repeat, ok := repeatMap.Get(message.GroupId)
+	repeat, ok := p.repeatMap.Get(message.GroupId)
 	if ok {
 		if repeat.First >= 2 && repeat.Second == text {
 			msg := messagechain.Group(message.GroupId).Text(text)
 			msg.Send()
-			repeatMap.Set(message.GroupId, tuple.Of(-100, text))
+			p.repeatMap.Set(message.GroupId, tuple.Of(-100, text))
 			return false
 		} else if repeat.Second != text {
-			repeatMap.Set(message.GroupId, tuple.Of(1, text))
+			p.repeatMap.Set(message.GroupId, tuple.Of(1, text))
 		} else {
-			repeatMap.Set(message.GroupId, tuple.Of(repeat.First+1, text))
+			p.repeatMap.Set(message.GroupId, tuple.Of(repeat.First+1, text))
 		}
 	} else {
-		repeatMap.Set(message.GroupId, tuple.Of(1, text))
+		p.repeatMap.Set(message.GroupId, tuple.Of(1, text))
 	}
 	// AI聊天
 	if !mention {
 		return true
 	}
-	handleGroupAIChat(message, text)
+	p.handleGroupAIChat(message, text)
 	return false
 }
 
 // 处理AI聊天
-func handleGroupAIChat(msg *model.GroupMessage, text string) {
-	llmLock.Lock()
-	if currentRun > config.GetConfig().MaxRun {
-		llmLock.Unlock()
-		sendBusyResponse(msg)
+func (p *Plugin) handleGroupAIChat(msg *model.GroupMessage, text string) {
+	p.llmLock.Lock()
+	if p.currentRun > config.GetConfig().MaxRun {
+		p.llmLock.Unlock()
+		p.sendBusyResponse(msg)
 		return
 	}
-	currentRun += 1
-	llmLock.Unlock()
+	p.currentRun += 1
+	p.llmLock.Unlock()
 	defer func() {
-		llmLock.Lock()
-		currentRun -= 1
-		llmLock.Unlock()
+		p.llmLock.Lock()
+		p.currentRun -= 1
+		p.llmLock.Unlock()
 	}()
-	processGroupAIResponse(msg, text)
+	p.processGroupAIResponse(msg, text)
 }
 
 // 发送忙碌响应
-func sendBusyResponse(msg *model.GroupMessage) {
+func (p *Plugin) sendBusyResponse(msg *model.GroupMessage) {
 	chain := messagechain.Group(msg.GroupId)
 	chain.Reply(msg.MessageId)
 	chain.Mention(msg.UserId)
@@ -83,8 +102,8 @@ func sendBusyResponse(msg *model.GroupMessage) {
 }
 
 // 处理群AI响应
-func processGroupAIResponse(msg *model.GroupMessage, text string) {
-	deepseek := getOrCreateGroupAIModel(msg.GroupId)
+func (p *Plugin) processGroupAIResponse(msg *model.GroupMessage, text string) {
+	deepseek := p.getOrCreateGroupAIModel(msg.GroupId)
 	showName := msg.Sender.Card
 	if showName == "" {
 		showName = msg.Sender.Nickname
@@ -93,21 +112,21 @@ func processGroupAIResponse(msg *model.GroupMessage, text string) {
 }
 
 // 处理私聊AI聊天
-func handlePrivateAIChat(msg *model.FriendMessage, text string) {
-	llmLock.Lock()
-	if currentRun > config.GetConfig().MaxRun {
-		llmLock.Unlock()
+func (p *Plugin) handlePrivateAIChat(msg *model.FriendMessage, text string) {
+	p.llmLock.Lock()
+	if p.currentRun > config.GetConfig().MaxRun {
+		p.llmLock.Unlock()
 		sendPrivateBusyResponse(msg.UserId)
 		return
 	}
-	currentRun += 1
-	llmLock.Unlock()
+	p.currentRun += 1
+	p.llmLock.Unlock()
 	defer func() {
-		llmLock.Lock()
-		currentRun--
-		llmLock.Unlock()
+		p.llmLock.Lock()
+		p.currentRun--
+		p.llmLock.Unlock()
 	}()
-	processPrivateAIResponse(msg, text)
+	p.processPrivateAIResponse(msg, text)
 }
 
 // 发送忙碌响应
@@ -118,36 +137,36 @@ func sendPrivateBusyResponse(uid uint) {
 }
 
 // 处理私聊AI响应
-func processPrivateAIResponse(msg *model.FriendMessage, text string) {
+func (p *Plugin) processPrivateAIResponse(msg *model.FriendMessage, text string) {
 	uid := msg.UserId
-	deepseek := getOrCreatePrivateAIModel(uid)
+	deepseek := p.getOrCreatePrivateAIModel(uid)
 	deepseek.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", msg.Sender.Nickname, msg.Sender.UserId, text), nil, msg)
 }
 
 // 获取或创建私聊AI模型
-func getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
-	deepseek, ok := aiModelMap.Get(uid)
+func (p *Plugin) getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
+	deepseek, ok := p.aiModelMap.Get(uid)
 	if !ok {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().AIToken,
 			functioncall.TargetFriend,
 		)
-		aiModelMap.Set(uid, deepseek)
+		p.aiModelMap.Set(uid, deepseek)
 	}
 	return deepseek
 }
 
 // 获取或创建群AI模型
-func getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
-	deepseek, ok := aiModelMap.Get(uid)
+func (p *Plugin) getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
+	deepseek, ok := p.aiModelMap.Get(uid)
 	if !ok {
 		deepseek = aicommunicate.NewDeepSeekV3(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().AIToken,
 			functioncall.TargetGroup,
 		)
-		aiModelMap.Set(uid, deepseek)
+		p.aiModelMap.Set(uid, deepseek)
 	}
 	return deepseek
 }

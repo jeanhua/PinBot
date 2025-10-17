@@ -8,7 +8,7 @@ import (
 	"github.com/jeanhua/PinBot/model"
 )
 
-var Plugins = []*PluginMeta{}
+var Plugins []*PluginMeta
 
 type PluginMeta struct {
 	Name        string

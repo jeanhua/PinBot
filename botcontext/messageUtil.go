@@ -38,7 +38,7 @@ func ExtractGroupMessageContent(msg *model.GroupMessage) (string, bool) {
 			}
 		}
 	}
-	return extractOB11SegmentMessage(msg.Message, msg.GroupId, 3), mention
+	return extractOB11SegmentMessage(msg.Message, msg.GroupId, 2), mention
 }
 
 func ExtractGroupRawMessage(msg *model.GroupMessage) (string, bool) {

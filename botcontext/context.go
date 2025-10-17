@@ -2,6 +2,7 @@ package botcontext
 
 import (
 	"fmt"
+	"github.com/jeanhua/PinBot/botcontext/plugin"
 	"io"
 	"log"
 	"net/http"
@@ -10,12 +11,12 @@ import (
 )
 
 type BotContext struct {
-	Plugins *BotPlugin
+	Plugins *plugin.BotPlugin
 }
 
 func NewBot() *BotContext {
 	instance := &BotContext{
-		Plugins: &BotPlugin{},
+		Plugins: &plugin.BotPlugin{},
 	}
 	return instance
 }
