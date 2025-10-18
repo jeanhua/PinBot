@@ -160,24 +160,31 @@ func registerPlugin(instance *botcontext.BotContext) {
 ```go
 // 群聊消息
 chain := messagechain.Group(groupId)
-chain.Reply(messageId)        // 回复消息
-chain.Mention(userId)         // @用户
-chain.Text("消息内容")         // 文本消息
-chain.Image(url)              // 图片消息
-chain.Voice(url)              // 语音消息
-chain.Send()                  // 发送消息
+chain.Reply(message)        // 回复消息
+chain.Mention(userId)       // @用户
+chain.Text("消息内容")        // 文本消息
+// 图片消息
+chain.LocalImage(path)
+chain.Base64Image(encode)
+chain.UrlImage(url)
+
+// AI语音消息
+chain := messagechain.AIMessage(groupUin uint, character string, text string) 
 
 // 私聊消息
 chain := messagechain.Friend(userId)
 chain.Text("私聊消息")
-chain.Send()
+
+chain.Send()                  // 发送消息
 ```
 
 #### 4.2 工具函数 (utils)
 
-- `webSearch.Search(keyword)` - 网页搜索
-- `webExplore.Explore(url)` - 网页内容提取
-- `music.SearchMusic(keyword)` - 音乐搜索
+- `WebSearch()` - 网页搜索
+- `WebExplore()` - 网页内容提取
+- `MusicSearch{}` - 音乐搜索类
+- `NewZanao(token)` - 赞哦校园集市
+- `NewSCU2Class` - 四川大学第二课堂
 
 #### 4.3 AI功能集成
 

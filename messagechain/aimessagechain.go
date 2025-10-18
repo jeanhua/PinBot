@@ -9,24 +9,24 @@ import (
 )
 
 type AIMessageData struct {
-	urlpath   string
+	urlPath   string
 	GroupId   uint   `json:"group_id"`
 	Character string `json:"character"`
 	Text      string `json:"text"`
 }
 
-func AIMessage(groupUin uint, charactor string, text string) MessageChain {
+func AIMessage(groupUin uint, character string, text string) MessageChain {
 	return &AIMessageData{
-		urlpath:   config.GetConfig().NapCatServerUrl + "/send_group_ai_record",
+		urlPath:   config.GetConfig().NapCatServerUrl + "/send_group_ai_record",
 		GroupId:   groupUin,
-		Character: charactor,
+		Character: character,
 		Text:      text,
 	}
 }
 
 func (mc *AIMessageData) Send() {
 	httpUtil := utils.HttpUtil{}
-	err := httpUtil.RequestWithNoResponse(http.MethodPost, mc.urlpath, httpUtil.WithJsonBody(mc))
+	err := httpUtil.RequestWithNoResponse(http.MethodPost, mc.urlPath, httpUtil.WithJsonBody(mc))
 	if err != nil {
 		log.Println("error when send aiMessage chain message")
 	}
