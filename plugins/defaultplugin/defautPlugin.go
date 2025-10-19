@@ -30,18 +30,6 @@ func NewPlugin() *Plugin {
 	}
 }
 
-func (p *Plugin) Name() string {
-	return "default plugin"
-}
-
-func (p *Plugin) Description() string {
-	return "系统默认插件, AI智能体, 可以聊天，逛校园集市，检索和浏览网页, 群语音聊天, 发表情包, 搜索歌曲等"
-}
-
-func (p *Plugin) IsPublic() bool {
-	return true
-}
-
 func (p *Plugin) OnFriendMsg(message *model.FriendMessage) bool {
 	text := botcontext.ExtractPrivateMessageText(message)
 	p.handlePrivateAIChat(message, text)

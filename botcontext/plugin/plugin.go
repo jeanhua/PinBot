@@ -10,9 +10,6 @@ type BotPlugin struct {
 }
 
 type PluginContext interface {
-	Name() string
-	Description() string
-	IsPublic() bool
 	OnFriendMsg(message *model.FriendMessage) bool
 	OnGroupMsg(message *model.GroupMessage) bool
 }
@@ -35,11 +32,11 @@ func (p *BotPlugin) ExecuteGroup(message *model.GroupMessage) {
 	}
 }
 
-func (p *BotPlugin) AddPlugin(plugin PluginContext) {
+func (p *BotPlugin) AddPlugin(plugin PluginContext, name, description string, isPublic bool) {
 	p.plugins = append(p.plugins, plugin)
 	botcommand.Plugins = append(botcommand.Plugins, &botcommand.PluginMeta{
-		Name:        plugin.Name(),
-		Description: plugin.Description(),
-		IsPublic:    plugin.IsPublic(),
+		Name:        name,
+		Description: description,
+		IsPublic:    isPublic,
 	})
 }

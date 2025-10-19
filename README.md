@@ -52,9 +52,6 @@
 
 在 `PinBot` 项目中，插件是通过实现 `PluginContext` 接口来完成的。每个插件都需要实现以下方法：
 
-- `Name() string` - 插件名称
-- `Description() string` - 插件描述
-- `IsPublic() bool` - 是否公开显示（在 `/plugin` 命令中）
 - `OnFriendMsg(*model.FriendMessage) bool` - 处理私聊消息
 - `OnGroupMsg(*model.GroupMessage) bool` - 处理群聊消息
 
@@ -86,18 +83,6 @@ type Plugin struct{}
 
 func NewPlugin() *Plugin {
 	return &Plugin{}
-}
-
-func (p *Plugin) Name() string {
-	return "我的插件"
-}
-
-func (p *Plugin) Description() string {
-	return "这是一个自定义插件示例"
-}
-
-func (p *Plugin) IsPublic() bool {
-	return true // 设置为true会在/plugin命令中显示
 }
 
 func (p *Plugin) OnFriendMsg(message *model.FriendMessage) bool {
@@ -136,18 +121,18 @@ func (p *Plugin) OnGroupMsg(message *model.GroupMessage) bool {
 在 `main.go` 文件的 `registerPlugin` 函数中注册新插件：
 
 ```go
-func registerPlugin(instance *botcontext.BotContext) {
+func registerPlugin(bot *botcontext.BotContext) {
 	// 示例插件：打印消息
-	instance.Plugins.AddPlugin(exampleplugin.NewPlugin())
+	bot.Plugins.AddPlugin(exampleplugin.NewPlugin(), "示例插件", "打印日志消息", false)
 
 	/* -----------在这里注册插件----------- */
-	// 注册你的插件
-	instance.Plugins.AddPlugin(myplugin.NewPlugin())
+	//
+
 	//
 	/* -----------在上面注册插件----------- */
 
 	// 系统默认插件，包含AI聊天
-	instance.Plugins.AddPlugin(defaultplugin.NewPlugin())
+	bot.Plugins.AddPlugin(defaultplugin.NewPlugin(), "系统默认插件", "系统默认插件, AI智能体, 可以聊天，逛校园集市，检索和浏览网页, 群语音聊天, 发表情包, 搜索歌曲等", true)
 }
 ```
 
