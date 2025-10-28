@@ -127,7 +127,7 @@ func registerPlugin(bot *botcontext.BotContext) {
 
 	/* -----------在这里注册插件----------- */
 	//
-
+	bot.Plugins.AddPlugin(myplugin.NewPlugin(), "示例插件", "我的插件", true) // true代表公开插件，可以发送 /plugin 获取插件信息
 	//
 	/* -----------在上面注册插件----------- */
 
