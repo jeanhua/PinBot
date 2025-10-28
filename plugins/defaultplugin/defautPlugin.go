@@ -38,21 +38,22 @@ func (p *Plugin) OnFriendMsg(message *model.FriendMessage) bool {
 
 func (p *Plugin) OnGroupMsg(message *model.GroupMessage) bool {
 	text, mention := botcontext.ExtractGroupMessageContent(message)
+	rawMsg, _ := botcontext.ExtractGroupRawMessage(message)
 	// 复读机
 	repeat, ok := p.repeatMap.Get(message.GroupId)
 	if ok {
-		if repeat.First >= 2 && repeat.Second == text {
-			msg := messagechain.Group(message.GroupId).Text(text)
+		if repeat.First >= 2 && repeat.Second == rawMsg {
+			msg := messagechain.Group(message.GroupId).Text(rawMsg)
+			p.repeatMap.Set(message.GroupId, tuple.Of(-100, rawMsg))
 			msg.Send()
-			p.repeatMap.Set(message.GroupId, tuple.Of(-100, text))
 			return false
-		} else if repeat.Second != text {
-			p.repeatMap.Set(message.GroupId, tuple.Of(1, text))
+		} else if repeat.Second != rawMsg {
+			p.repeatMap.Set(message.GroupId, tuple.Of(1, rawMsg))
 		} else {
-			p.repeatMap.Set(message.GroupId, tuple.Of(repeat.First+1, text))
+			p.repeatMap.Set(message.GroupId, tuple.Of(repeat.First+1, rawMsg))
 		}
 	} else {
-		p.repeatMap.Set(message.GroupId, tuple.Of(1, text))
+		p.repeatMap.Set(message.GroupId, tuple.Of(1, rawMsg))
 	}
 	// AI聊天
 	if !mention {
