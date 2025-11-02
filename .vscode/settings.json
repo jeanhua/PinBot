@@ -1,6 +1,0 @@
-{
-    "go.alternateTools": {},
-    "go.testEnvVars": {},
-    "go.testTags": "",
-    "go.testFlags": ["-v"]
-}
