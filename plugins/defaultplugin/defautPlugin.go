@@ -2,8 +2,6 @@ package defaultplugin
 
 import (
 	"fmt"
-	"sync"
-
 	"github.com/jeanhua/PinBot/ai/aicommunicate"
 	"github.com/jeanhua/PinBot/ai/functioncall"
 	"github.com/jeanhua/PinBot/botcontext"
@@ -12,19 +10,18 @@ import (
 	"github.com/jeanhua/PinBot/datastructure/tuple"
 	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
+	"log"
 )
 
 type Plugin struct {
-	llmLock    sync.Mutex
-	currentRun int
+	currentRun chan struct{}
 	aiModelMap *concurrent.ConcurrentMap[uint, aicommunicate.AiModel]
 	repeatMap  *concurrent.ConcurrentMap[uint, tuple.Tuple[int, string]]
 }
 
 func NewPlugin() *Plugin {
 	return &Plugin{
-		llmLock:    sync.Mutex{},
-		currentRun: 0,
+		currentRun: make(chan struct{}, config.GetConfig().MaxRun),
 		aiModelMap: concurrent.NewConcurrentMap[uint, aicommunicate.AiModel](),
 		repeatMap:  concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]](),
 	}
@@ -63,26 +60,22 @@ func (p *Plugin) OnGroupMsg(message *model.GroupMessage) bool {
 	return false
 }
 
-// 处理AI聊天
+// 处理群AI聊天
 func (p *Plugin) handleGroupAIChat(msg *model.GroupMessage, text string) {
-	p.llmLock.Lock()
-	if p.currentRun > config.GetConfig().MaxRun {
-		p.llmLock.Unlock()
-		p.sendBusyResponse(msg)
-		return
+	select {
+	case p.currentRun <- struct{}{}:
+		log.Println("new group handler run...")
+		p.processGroupAIResponse(msg, text)
+		<-p.currentRun
+		log.Println("finish a group handler run...")
+	default:
+		sendGroupBusyResponse(msg)
 	}
-	p.currentRun += 1
-	p.llmLock.Unlock()
-	defer func() {
-		p.llmLock.Lock()
-		p.currentRun -= 1
-		p.llmLock.Unlock()
-	}()
-	p.processGroupAIResponse(msg, text)
+
 }
 
 // 发送忙碌响应
-func (p *Plugin) sendBusyResponse(msg *model.GroupMessage) {
+func sendGroupBusyResponse(msg *model.GroupMessage) {
 	chain := messagechain.Group(msg.GroupId)
 	chain.Reply(msg.MessageId)
 	chain.Mention(msg.UserId)
@@ -102,20 +95,16 @@ func (p *Plugin) processGroupAIResponse(msg *model.GroupMessage, text string) {
 
 // 处理私聊AI聊天
 func (p *Plugin) handlePrivateAIChat(msg *model.FriendMessage, text string) {
-	p.llmLock.Lock()
-	if p.currentRun > config.GetConfig().MaxRun {
-		p.llmLock.Unlock()
-		sendPrivateBusyResponse(msg.UserId)
-		return
+	select {
+	case p.currentRun <- struct{}{}:
+		log.Println("new private handler run...")
+		p.processPrivateAIResponse(msg, text)
+		<-p.currentRun
+		log.Println("finish a private handler run...")
+	default:
+		sendPrivateBusyResponse(msg.Sender.UserId)
 	}
-	p.currentRun += 1
-	p.llmLock.Unlock()
-	defer func() {
-		p.llmLock.Lock()
-		p.currentRun--
-		p.llmLock.Unlock()
-	}()
-	p.processPrivateAIResponse(msg, text)
+
 }
 
 // 发送忙碌响应
