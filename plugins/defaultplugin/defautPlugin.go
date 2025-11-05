@@ -10,7 +10,6 @@ import (
 	"github.com/jeanhua/PinBot/datastructure/tuple"
 	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
-	"log"
 )
 
 type Plugin struct {
@@ -20,8 +19,12 @@ type Plugin struct {
 }
 
 func NewPlugin() *Plugin {
+	maxRun := config.GetConfig().MaxRun
+	if maxRun <= 0 {
+		maxRun = 5
+	}
 	return &Plugin{
-		currentRun: make(chan struct{}, config.GetConfig().MaxRun),
+		currentRun: make(chan struct{}, maxRun),
 		aiModelMap: concurrent.NewConcurrentMap[uint, aicommunicate.AiModel](),
 		repeatMap:  concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]](),
 	}
@@ -64,10 +67,8 @@ func (p *Plugin) OnGroupMsg(message *model.GroupMessage) bool {
 func (p *Plugin) handleGroupAIChat(msg *model.GroupMessage, text string) {
 	select {
 	case p.currentRun <- struct{}{}:
-		log.Println("new group handler run...")
 		p.processGroupAIResponse(msg, text)
 		<-p.currentRun
-		log.Println("finish a group handler run...")
 	default:
 		sendGroupBusyResponse(msg)
 	}
@@ -97,14 +98,11 @@ func (p *Plugin) processGroupAIResponse(msg *model.GroupMessage, text string) {
 func (p *Plugin) handlePrivateAIChat(msg *model.FriendMessage, text string) {
 	select {
 	case p.currentRun <- struct{}{}:
-		log.Println("new private handler run...")
 		p.processPrivateAIResponse(msg, text)
 		<-p.currentRun
-		log.Println("finish a private handler run...")
 	default:
 		sendPrivateBusyResponse(msg.Sender.UserId)
 	}
-
 }
 
 // 发送忙碌响应
