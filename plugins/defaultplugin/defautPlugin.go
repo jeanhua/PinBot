@@ -86,12 +86,12 @@ func sendGroupBusyResponse(msg *model.GroupMessage) {
 
 // 处理群AI响应
 func (p *Plugin) processGroupAIResponse(msg *model.GroupMessage, text string) {
-	deepseek := p.getOrCreateGroupAIModel(msg.GroupId)
+	aiBot := p.getOrCreateGroupAIModel(msg.GroupId)
 	showName := msg.Sender.Card
 	if showName == "" {
 		showName = msg.Sender.Nickname
 	}
-	deepseek.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", showName, msg.Sender.UserId, text), msg, nil)
+	aiBot.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", showName, msg.Sender.UserId, text), msg, nil)
 }
 
 // 处理私聊AI聊天
@@ -115,34 +115,34 @@ func sendPrivateBusyResponse(uid uint) {
 // 处理私聊AI响应
 func (p *Plugin) processPrivateAIResponse(msg *model.FriendMessage, text string) {
 	uid := msg.UserId
-	deepseek := p.getOrCreatePrivateAIModel(uid)
-	deepseek.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", msg.Sender.Nickname, msg.Sender.UserId, text), nil, msg)
+	aiBot := p.getOrCreatePrivateAIModel(uid)
+	aiBot.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", msg.Sender.Nickname, msg.Sender.UserId, text), nil, msg)
 }
 
 // 获取或创建私聊AI模型
 func (p *Plugin) getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
-	deepseek, ok := p.aiModelMap.Get(uid)
+	aiBot, ok := p.aiModelMap.Get(uid)
 	if !ok {
-		deepseek = aicommunicate.NewDeepSeekV3(
+		aiBot = aicommunicate.NewAiBot(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().AIToken,
 			functioncall.TargetFriend,
 		)
-		p.aiModelMap.Set(uid, deepseek)
+		p.aiModelMap.Set(uid, aiBot)
 	}
-	return deepseek
+	return aiBot
 }
 
 // 获取或创建群AI模型
 func (p *Plugin) getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
-	deepseek, ok := p.aiModelMap.Get(uid)
+	aiBot, ok := p.aiModelMap.Get(uid)
 	if !ok {
-		deepseek = aicommunicate.NewDeepSeekV3(
+		aiBot = aicommunicate.NewAiBot(
 			config.GetConfig().AiPrompt,
 			config.GetConfig().AIToken,
 			functioncall.TargetGroup,
 		)
-		p.aiModelMap.Set(uid, deepseek)
+		p.aiModelMap.Set(uid, aiBot)
 	}
-	return deepseek
+	return aiBot
 }

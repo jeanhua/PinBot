@@ -14,6 +14,8 @@ type ConfigModel struct {
 	LocalListenPort uint   `yaml:"localListenPort"`
 	AdminId         uint   `yaml:"admin_id"`
 	TestGroup       uint   `yaml:"test_group"`
+	AiRequestUrl    string `yaml:"ai_request_url"`
+	AiModelName     string `yaml:"ai_model"`
 	ZanaoToken      string `yaml:"zanao_token"`
 	AIToken         string `yaml:"ai_token"`
 	TavilyToken     string `yaml:"tavilyToken"`

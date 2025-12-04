@@ -21,7 +21,7 @@
 ### ✨ 核心特性
 
 - **🔌 插件化架构** - 支持插件拓展Bot功能
-- **🤖 AI 智能助手** - 集成 DeepSeek AI，支持 Function Call 功能调用
+- **🤖 AI 智能助手** - 集成 AI 大模型，支持 Function Call 功能调用
 - **💬 多场景支持** - 同时支持群聊和私聊消息处理
 - **🛠️ 丰富工具集** - 内置网页搜索、音乐分享、校园集市、二课等实用功能
 - **⚡ 高性能** - 采用 Go 语言开发，具备优秀的并发性能
@@ -203,7 +203,7 @@ func (h *myHandler) Handle(params map[string]any, uid uint, target int) (string,
 "myFunction": &myHandler{},
 ```
 
-3. **定义工具** - 在 `ai/aicommunicate/deepseek.go` 的 `initFunctionTools()` 中添加：
+3. **定义工具** - 在 `ai/aicommunicate/modelInstance.go` 的 `initFunctionTools()` 中添加：
 ```go
 tools.addFunction(makeFunctionCallTools(
 	"myFunction",
