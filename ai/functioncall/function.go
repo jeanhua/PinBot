@@ -117,7 +117,7 @@ func (h *speakHandler) Handle(params map[string]any, uid uint, target int) (stri
 		chain.Text("[语音消息]" + text)
 		chain.Send()
 	}
-	return "已成功给用户发送语音，你可以继续回复用户，或者输出一个空格结束", nil
+	return "已成功给用户发送语音", nil
 }
 
 type webSearchHandler struct{}

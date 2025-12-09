@@ -7,7 +7,7 @@ import (
 )
 
 type AiModel interface {
-	Ask(question string, group_msg *model.GroupMessage, friend_msg *model.FriendMessage)
+	Ask(question string, groupMsg *model.GroupMessage, friendMsg *model.FriendMessage)
 }
 
 type commonRequestBody struct {
