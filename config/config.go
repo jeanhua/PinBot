@@ -8,18 +8,21 @@ import (
 )
 
 type ConfigModel struct {
-	Debug           bool   `yaml:"debug"`
-	MaxRun          int    `yaml:"max_run"`
-	NapCatServerUrl string `yaml:"napcatServerUrl"`
-	LocalListenPort uint   `yaml:"localListenPort"`
-	AdminId         uint   `yaml:"admin_id"`
-	TestGroup       uint   `yaml:"test_group"`
-	AiRequestUrl    string `yaml:"ai_request_url"`
-	AiModelName     string `yaml:"ai_model"`
-	ZanaoToken      string `yaml:"zanao_token"`
-	AIToken         string `yaml:"ai_token"`
-	TavilyToken     string `yaml:"tavilyToken"`
-	SCU2ClassToken  string `yaml:"scu2class_token"`
+	Debug           bool    `yaml:"debug"`
+	MaxRun          int     `yaml:"max_run"`
+	NapCatServerUrl string  `yaml:"napcatServerUrl"`
+	LocalListenPort uint    `yaml:"localListenPort"`
+	AdminId         uint    `yaml:"admin_id"`
+	TestGroup       uint    `yaml:"test_group"`
+	AiRequestUrl    string  `yaml:"ai_request_url"`
+	AiModelName     string  `yaml:"ai_model"`
+	AiTemperature   float32 `yaml:"ai_temperature"`
+	AiTopP          float32 `yaml:"ai_top_p"`
+	AiTopK          int     `yaml:"ai_top_k"`
+	ZanaoToken      string  `yaml:"zanao_token"`
+	AIToken         string  `yaml:"ai_token"`
+	TavilyToken     string  `yaml:"tavilyToken"`
+	SCU2ClassToken  string  `yaml:"scu2class_token"`
 	Group           struct {
 		Include []string `yaml:"include"`
 		Exclude []string `yaml:"exclude"`

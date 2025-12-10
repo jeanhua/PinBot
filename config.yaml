@@ -28,6 +28,10 @@ friend:
 ai_request_url: # 请求地址
 ai_model: # 请求的模型
 ai_token: # 大模型开放平台token
+# 模型参数
+ai_temperature: 1.2
+ai_top_p: 0.9
+ai_top_k: 100
 # AI系统预设提示词
 ai_prompt: "你是一个知心小姐姐，活泼有点小傲娇，不要使用markdown，你在QQ群聊里面或者个人聊天，不要长篇大论。"
 

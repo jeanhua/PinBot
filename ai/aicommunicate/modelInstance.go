@@ -295,9 +295,9 @@ func request(msg []*message, model, token string, tools []*functionCallTool) (*c
 		Messages:    msg,
 		Stream:      false,
 		Tools:       tools,
-		Temperature: 0.9,
-		TopK:        66,
-		TopP:        0.8,
+		Temperature: config.GetConfig().AiTemperature,
+		TopK:        config.GetConfig().AiTopK,
+		TopP:        config.GetConfig().AiTopP,
 	}
 
 	bodyBytes, err := json.Marshal(body)
