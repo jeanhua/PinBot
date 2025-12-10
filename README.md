@@ -1,32 +1,29 @@
 # 📌 PinBot
 
-> **基于 [NapCat](https://napneko.github.io/guide/napcat) 的 QQ 机器人**
+> **这是基于 [NapCat](https://napneko.github.io/guide/napcat) 的 QQ 机器人框架，支持自定义插件扩展**
 
-<details>
-  <summary style="cursor: pointer; font-size: 16px; font-weight: bold;">点击展开图片预览（共5张）</summary>
-  <div align=center style="margin-top: 10px;">
+<div align=center style="margin-top: 10px;">
     <img src="./README/1.jpg" width="45%"/>
     <img src="./README/2.jpg" width="45%"/>
     <img src="./README/3.jpg" width="45%"/>
     <img src="./README/4.jpg" width="45%"/>
     <img src="./README/5.jpg" width="45%"/>
-  </div>
-</details>
+</div>
 
 
-## 🚀 项目介绍
+## 项目介绍
 
 **PinBot** 是一个基于 Go 语言开发的模块化 QQ 机器人框架，构建在 NapCat 协议之上。该项目采用插件化架构设计，支持高度自定义的功能扩展，让开发者能够轻松创建和管理各种机器人功能。
 
-### ✨ 核心特性
+### 核心特性
 
-- **🔌 插件化架构** - 支持插件拓展Bot功能
-- **🤖 AI 智能助手** - 集成 AI 大模型，支持 Function Call 功能调用
-- **💬 多场景支持** - 同时支持群聊和私聊消息处理
-- **🛠️ 丰富工具集** - 内置网页搜索、音乐分享、校园集市、二课等实用功能
-- **⚡ 高性能** - 采用 Go 语言开发，具备优秀的并发性能
+- **插件化架构** - 支持插件拓展Bot功能
+- **AI 智能助手** - 集成 AI 大模型，支持 Function Call 功能调用
+- **多场景支持** - 同时支持群聊和私聊消息处理
+- **丰富工具集** - 内置网页搜索、音乐分享、校园集市、二课等实用功能
+- **高性能** - 采用 Go 语言开发，具备优秀的并发性能
 
-### 🎯 主要功能
+### 主要功能
 
 - **AI 对话** - 智能聊天、问题解答、知识查询
 - **网页搜索** - 实时信息检索和网页内容提取
@@ -36,17 +33,17 @@
 - **复读机** - 群聊趣味互动功能
 - **表情包** - 动态表情包生成
 
-### 🏗️ 技术架构
+### 技术架构
 
 - **后端框架**: Go 语言
 - **通信协议后端**: NapCat
-- **AI 引擎**: DeepSeek API（或兼容开放协议的其他模型）
+- **AI 引擎**: 兼容OpenAI的协议接口
 - **插件系统**: 自定义插件接口
 - **消息处理**: 链式消息构建器
 
 ---
 
-## 🔌插件开发指南
+## 插件开发指南
 
 ### 1. 插件基础结构
 
@@ -179,7 +176,7 @@ chain.Send()                  // 发送消息
 import "github.com/jeanhua/PinBot/ai/aicommunicate"
 
 // 创建AI模型
-aiModel := aicommunicate.NewDeepSeekV3(prompt, token, target)
+aiModel := aicommunicate.NewAiBot(prompt, token, target)
 
 // 使用AI回答问题
 aiModel.Ask(question, groupMsg, friendMsg)
@@ -197,6 +194,8 @@ func (h *myHandler) Handle(params map[string]any, uid uint, target int) (string,
 	return "处理结果: " + param, nil
 }
 ```
+
+注: `target` 为枚举，表示群聊(`TargetGroup`)和私聊(`TargetFriend`)，`uid`表示对应的群聊id或者私聊id
 
 2. **注册函数** - 在同一个文件的 `functionRegistry` 中添加：
 ```go
@@ -216,7 +215,6 @@ tools.addFunction(makeFunctionCallTools(
 - 处理器必须实现 `FunctionHandler` 接口
 - 使用内置参数函数处理输入：`GetStringParam()`, `GetIntParam()`
 - 返回字符串结果供AI使用
-- 支持群聊(`TargetGroup`)和私聊(`TargetFriend`)
 
 ### 5. 插件执行流程
 
