@@ -64,7 +64,7 @@ func handleFriendMessage(message []byte, bot *BotContext) {
 		return
 	}
 
-	if isIncludedFriend(friendMsg.UserId) {
+	if friendMsg.Sender.UserId != friendMsg.SelfId && isIncludedFriend(friendMsg.UserId) {
 		bot.onPrivateMessage(&friendMsg)
 	}
 }
@@ -81,7 +81,7 @@ func handleGroupMessage(message []byte, bot *BotContext) {
 		return
 	}
 
-	if isIncludedGroup(groupMsg.GroupId) {
+	if groupMsg.Sender.UserId != groupMsg.SelfId && isIncludedGroup(groupMsg.GroupId) {
 		bot.onGroupMessage(&groupMsg)
 	}
 }
