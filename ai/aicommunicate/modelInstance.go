@@ -120,7 +120,6 @@ func (aiBot *AiBot) SendMsg(msg string, group_msg *model.GroupMessage, friend_ms
 	if aiBot.target == functioncall.TargetFriend {
 		if len(mutMsg) <= 500 {
 			chain := messagechain.Friend(friend_msg.Sender.UserId)
-			chain.Reply(friend_msg.MessageId)
 			chain.Text(msg)
 			chain.Send()
 		} else {
@@ -132,9 +131,6 @@ func (aiBot *AiBot) SendMsg(msg string, group_msg *model.GroupMessage, friend_ms
 				segment := string(mutMsg[i:end])
 
 				chain := messagechain.Friend(friend_msg.Sender.UserId)
-				if i == 0 {
-					chain.Reply(friend_msg.MessageId)
-				}
 				chain.Text(segment)
 				chain.Send()
 			}
