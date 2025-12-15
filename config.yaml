@@ -1,50 +1,54 @@
-debug: false
-admin_id: 2207739460
-test_group: 703250512
+bot_config:
+  debug: false
+  admin_id: 2207739460
+  test_group: 703250512
+  # ai voice id
+  ai_voice_id: "lucy-voice-suxinjiejie"
+  # large model concurrency
+  max_run: 5
+  # napcat listen server
+  napcatServerUrl: "http://localhost:7824"
+  # local listen: localhost:port/Pinbot , for example: http://localhost:7823/Pinbot
+  localListenPort: 7823
+  # 黑白名单，优先级 exclude > include
+  group:
+    include:
+      - "all"
+    exclude:
+      - "1234567"
 
-# large model concurrency
-max_run: 5
+  friend:
+    include:
+      - "all"
+    exclude:
 
-# napcat listen server
-napcatServerUrl: "http://localhost:7824"
-# local listen: localhost:port/Pinbot , for example: http://localhost:7823/Pinbot
-localListenPort: 7823
+  # 帮助：发送 /help回复的内容
+  help_words:
+    group: |
+      @我聊天哦, 发送 #新对话 可以创建新对话,发送 /plugin 可以查看插件加载情况
+    friend: |
+      @我聊天哦, 发送 #新对话 可以创建新对话,发送 /plugin 可以查看插件加载情况
 
-# 黑白名单，优先级 exclude > include
-group:
-  include: 
-    - "all"
-  exclude: 
-    - "1234567"
+ai:
+  # AI config
+  # AI 配置 兼容openai规范
+  request_url: # 请求地址
+  model_name: # 请求的模型
+  token: # 大模型开放平台token
+  # 模型参数
+  temperature: 1.2
+  top_p: 0.9
+  top_k: 100
+  # AI系统预设提示词
+  prompt: "你是一个知心小姐姐，活泼有点小傲娇，不要使用markdown，你在QQ群聊里面或者个人聊天，不要长篇大论。"
 
-friend:
-  include: 
-    - "all"
-  exclude:
+
+function_call_config:
+  # 赞噢校园集市token
+  zanao_token: # 集市token 抓包请求头中的 X-Sc-Od
+
+  tavily_token: # tavily api token, 用于搜索
+
+  scu2class_token: # 四川大学第二课堂鉴权 token, 第二课堂相关
 
 
-# AI config
-# AI 配置 兼容openai规范
-ai_request_url: # 请求地址
-ai_model: # 请求的模型
-ai_token: # 大模型开放平台token
-# 模型参数
-ai_temperature: 1.2
-ai_top_p: 0.9
-ai_top_k: 100
-# AI系统预设提示词
-ai_prompt: "你是一个知心小姐姐，活泼有点小傲娇，不要使用markdown，你在QQ群聊里面或者个人聊天，不要长篇大论。"
-
-# 赞噢校园集市token
-zanao_token: # 集市token 抓包请求头中的 X-Sc-Od
-
-tavilyToken: # tavily api token, 用于搜索
-
-scu2class_token: # 四川大学第二课堂鉴权 token, 第二课堂相关
-
-# 帮助：发送 /help回复的内容
-help_words:
-  group: | 
-    @我聊天哦, 发送 #新对话 可以创建新对话,发送 /plugin 可以查看插件加载情况
-  friend: |
-    @我聊天哦, 发送 #新对话 可以创建新对话,发送 /plugin 可以查看插件加载情况

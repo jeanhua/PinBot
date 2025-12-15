@@ -88,7 +88,7 @@ func handleGroupMessage(message []byte, bot *BotContext) {
 
 // 检查好友是否在排除列表中
 func isExcludedFriend(userId uint) bool {
-	for _, uin := range config.GetConfig().Friend.Exclude {
+	for _, uin := range config.GetConfig().GetStringSlice("bot_config.friend.exclude") {
 		if uin == fmt.Sprintf("%d", userId) {
 			return true
 		}
@@ -98,7 +98,7 @@ func isExcludedFriend(userId uint) bool {
 
 // 检查好友是否在包含列表中
 func isIncludedFriend(userId uint) bool {
-	for _, uin := range config.GetConfig().Friend.Include {
+	for _, uin := range config.GetConfig().GetStringSlice("bot_config.friend.include") {
 		if uin == "all" || uin == fmt.Sprintf("%d", userId) {
 			return true
 		}
@@ -108,7 +108,7 @@ func isIncludedFriend(userId uint) bool {
 
 // 检查群组是否在排除列表中
 func isExcludedGroup(groupId uint) bool {
-	for _, uin := range config.GetConfig().Group.Exclude {
+	for _, uin := range config.GetConfig().GetStringSlice("bot_config.group.exclude") {
 		if uin == fmt.Sprintf("%d", groupId) {
 			return true
 		}
@@ -118,7 +118,7 @@ func isExcludedGroup(groupId uint) bool {
 
 // 检查群组是否在包含列表中
 func isIncludedGroup(groupId uint) bool {
-	for _, uin := range config.GetConfig().Group.Include {
+	for _, uin := range config.GetConfig().GetStringSlice("bot_config.group.include") {
 		if uin == "all" || uin == fmt.Sprintf("%d", groupId) {
 			return true
 		}

@@ -110,7 +110,7 @@ func (h *speakHandler) Handle(params map[string]any, uid uint, target int) (stri
 	}
 	switch target {
 	case TargetGroup:
-		chain := messagechain.AIMessage(uid, "lucy-voice-suxinjiejie", text)
+		chain := messagechain.AIMessage(uid, config.GetConfig().GetString("bot_config.ai_voice_id"), text)
 		chain.Send()
 	case TargetFriend:
 		chain := messagechain.Friend(uid)
@@ -133,7 +133,7 @@ func (h *webSearchHandler) Handle(params map[string]any, uid uint, target int) (
 	exclude, _ := params["exclude"].([]string)
 	count := getIntParam(params, "count", 10)
 
-	result := utils.WebSearch(config.GetConfig().TavilyToken, query, timeRange, include, exclude, count)
+	result := utils.WebSearch(config.GetConfig().GetString("function_call_config.tavily_token"), query, timeRange, include, exclude, count)
 	return result, nil
 }
 
@@ -150,7 +150,7 @@ func (h *webExploreHandler) Handle(params map[string]any, uid uint, target int) 
 		return "", err
 	}
 
-	result := utils.WebExplore(links, config.GetConfig().TavilyToken)
+	result := utils.WebExplore(links, config.GetConfig().GetString("function_call_config.tavily_token"))
 	return result, nil
 }
 
@@ -216,7 +216,7 @@ func (*shareMusicHandler) Handle(params map[string]any, uid uint, target int) (s
 type scu2ClassSearchHandler struct{}
 
 func (*scu2ClassSearchHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
-	scu2class := utils.NewSCU2Class(config.GetConfig().SCU2ClassToken)
+	scu2class := utils.NewSCU2Class(config.GetConfig().GetString("function_call_config.scu2class_token"))
 	keyword, err := getStringParam(params, "keyword")
 	if err != nil {
 		return "", err
@@ -228,7 +228,7 @@ func (*scu2ClassSearchHandler) Handle(params map[string]any, uid uint, target in
 type scu2ClassListHandler struct{}
 
 func (*scu2ClassListHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
-	scu2class := utils.NewSCU2Class(config.GetConfig().SCU2ClassToken)
+	scu2class := utils.NewSCU2Class(config.GetConfig().GetString("function_call_config.scu2class_token"))
 	activityLibId, err := getStringParam(params, "activityLibId")
 	if err != nil {
 		return "", err
@@ -240,7 +240,7 @@ func (*scu2ClassListHandler) Handle(params map[string]any, uid uint, target int)
 type scu2ClassShareHandler struct{}
 
 func (*scu2ClassShareHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
-	scu2class := utils.NewSCU2Class(config.GetConfig().SCU2ClassToken)
+	scu2class := utils.NewSCU2Class(config.GetConfig().GetString("function_call_config.scu2class_token"))
 	activityId, err := getStringParam(params, "activityId")
 	if err != nil {
 		return "", err

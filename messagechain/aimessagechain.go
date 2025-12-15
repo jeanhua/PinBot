@@ -17,7 +17,7 @@ type AIMessageData struct {
 
 func AIMessage(groupUin uint, character string, text string) MessageChain {
 	return &AIMessageData{
-		urlPath:   config.GetConfig().NapCatServerUrl + "/send_group_ai_record",
+		urlPath:   config.GetConfig().GetString("bot_config.napcatServerUrl") + "/send_group_ai_record",
 		GroupId:   groupUin,
 		Character: character,
 		Text:      text,

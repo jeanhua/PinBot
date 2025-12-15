@@ -166,7 +166,7 @@ func (aiBot *AiBot) Ask(question string, group_msg *model.GroupMessage, friend_m
 		// 发送请求获取AI响应
 		answer, err := request(
 			aiBot.messageChain,
-			config.GetConfig().AiModelName,
+			config.GetConfig().GetString("ai.model_name"),
 			aiBot.token,
 			aiBot.tools,
 		)
@@ -291,9 +291,9 @@ func request(msg []*message, model, token string, tools []*functionCallTool) (*c
 		Messages:    msg,
 		Stream:      false,
 		Tools:       tools,
-		Temperature: config.GetConfig().AiTemperature,
-		TopK:        config.GetConfig().AiTopK,
-		TopP:        config.GetConfig().AiTopP,
+		Temperature: float32(config.GetConfig().GetFloat64("ai.temperature")),
+		TopK:        config.GetConfig().GetInt("ai.top_k"),
+		TopP:        float32(config.GetConfig().GetFloat64("ai.top_p")),
 	}
 
 	bodyBytes, err := json.Marshal(body)
@@ -301,7 +301,7 @@ func request(msg []*message, model, token string, tools []*functionCallTool) (*c
 		return nil, fmt.Errorf("marshal request body failed: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, config.GetConfig().AiRequestUrl, bytes.NewBuffer(bodyBytes))
+	req, err := http.NewRequest(http.MethodPost, config.GetConfig().GetString("ai.request_url"), bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return nil, fmt.Errorf("create request failed: %w", err)
 	}

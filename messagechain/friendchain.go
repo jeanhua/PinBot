@@ -19,7 +19,7 @@ type FriendChain struct {
 
 func Friend(friendUin uint) *FriendChain {
 	return &FriendChain{
-		urlpath: config.GetConfig().NapCatServerUrl + "/send_private_msg",
+		urlpath: config.GetConfig().GetString("bot_config.napcatServerUrl") + "/send_private_msg",
 		Userid:  fmt.Sprintf("%d", friendUin),
 		Message: make([]MessageData, 0),
 	}

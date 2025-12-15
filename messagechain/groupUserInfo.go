@@ -27,7 +27,7 @@ func (g *GroupUserInfo) GetUserInfo(userid, groupid uint) (*GroupUserInfo, error
 	body["no_cache"] = true
 	result := groupUserInfoModel{}
 	httpUtil := utils.HttpUtil{}
-	err := httpUtil.Request(http.MethodPost, config.GetConfig().NapCatServerUrl+"/get_group_member_info", httpUtil.WithJsonBody(&body), &result)
+	err := httpUtil.Request(http.MethodPost, config.GetConfig().GetString("bot_config.napcatServerUrl")+"/get_group_member_info", httpUtil.WithJsonBody(&body), &result)
 	if err != nil {
 		log.Println("error when httpUtil.Request: GetUserInfo")
 		return nil, err

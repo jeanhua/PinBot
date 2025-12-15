@@ -22,14 +22,13 @@ func NewBot() *BotContext {
 }
 
 func (bot *BotContext) Run() {
-	config.LoadConfig()
 	startHTTPServer(bot)
 }
 
 func startHTTPServer(bot *BotContext) {
 	http.HandleFunc("/Pinbot", bot.handler)
-	log.Printf("Server starting on http://localhost:%d...\n", config.GetConfig().LocalListenPort)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.GetConfig().LocalListenPort), nil))
+	log.Printf("Server starting on http://localhost:%d...\n", config.GetConfig().GetInt("bot_config.localListenPort"))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.GetConfig().GetInt("bot_config.localListenPort")), nil))
 }
 
 func (bot *BotContext) handler(w http.ResponseWriter, r *http.Request) {

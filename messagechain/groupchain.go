@@ -19,7 +19,7 @@ type GroupChain struct {
 
 func Group(groupUin uint) *GroupChain {
 	return &GroupChain{
-		urlpath: config.GetConfig().NapCatServerUrl + "/send_group_msg",
+		urlpath: config.GetConfig().GetString("bot_config.napcatServerUrl") + "/send_group_msg",
 		Groupid: fmt.Sprintf("%d", groupUin),
 		Message: make([]MessageData, 0),
 	}

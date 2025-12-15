@@ -17,7 +17,7 @@ func (*ReplyMessageInfo) GetMessageDetail(messageId uint) ([]model.OB11Segment, 
 		"message_id": messageId,
 	}
 	result := model.MessageDetail{}
-	err := httpUtil.Request(http.MethodPost, config.GetConfig().NapCatServerUrl+"/get_msg", httpUtil.WithJsonBody(&body), &result)
+	err := httpUtil.Request(http.MethodPost, config.GetConfig().GetString("bot_config.napcatServerUrl")+"/get_msg", httpUtil.WithJsonBody(&body), &result)
 	if err != nil {
 		return nil, fmt.Errorf("error when GetMessageDetail")
 	}

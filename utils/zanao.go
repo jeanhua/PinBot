@@ -76,7 +76,7 @@ func (z *Zanao) GetNewest(fromTime string) string {
 		log.Println(err)
 		return ""
 	}
-	headers := getHeaders(config.GetConfig().ZanaoToken, "scu")
+	headers := getHeaders(config.GetConfig().GetString("function_call_config.zanao_token"), "scu")
 	for k, v := range headers {
 		request.Header.Set(k, v)
 	}
@@ -119,7 +119,7 @@ func (z *Zanao) GetHot() string {
 		log.Println(err)
 		return ""
 	}
-	headers := getHeaders(config.GetConfig().ZanaoToken, "scu")
+	headers := getHeaders(config.GetConfig().GetString("function_call_config.zanao_token"), "scu")
 	for k, v := range headers {
 		request.Header.Set(k, v)
 	}
@@ -159,7 +159,7 @@ func (z *Zanao) GetDetail(id string) string {
 		log.Println(err)
 		return ""
 	}
-	headers := getHeaders(config.GetConfig().ZanaoToken, "scu")
+	headers := getHeaders(config.GetConfig().GetString("function_call_config.zanao_token"), "scu")
 	for k, v := range headers {
 		request.Header.Set(k, v)
 	}
@@ -198,7 +198,7 @@ func (z *Zanao) Search(keyWords string) string {
 		log.Println(err)
 		return ""
 	}
-	headers := getHeaders(config.GetConfig().ZanaoToken, "scu")
+	headers := getHeaders(config.GetConfig().GetString("function_call_config.zanao_token"), "scu")
 	for k, v := range headers {
 		request.Header.Set(k, v)
 	}
@@ -239,7 +239,7 @@ func (z *Zanao) GetComments(id string) string {
 		log.Println(err)
 		return ""
 	}
-	headers := getHeaders(config.GetConfig().ZanaoToken, "scu")
+	headers := getHeaders(config.GetConfig().GetString("function_call_config.zanao_token"), "scu")
 	for k, v := range headers {
 		request.Header.Set(k, v)
 	}

@@ -19,7 +19,7 @@ type Plugin struct {
 }
 
 func NewPlugin() *Plugin {
-	maxRun := config.GetConfig().MaxRun
+	maxRun := config.GetConfig().GetInt("bot_config.max_run")
 	if maxRun <= 0 {
 		maxRun = 5
 	}
@@ -124,8 +124,8 @@ func (p *Plugin) getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
 	aiBot, ok := p.aiModelMap.Get(uid)
 	if !ok {
 		aiBot = aicommunicate.NewAiBot(
-			config.GetConfig().AiPrompt,
-			config.GetConfig().AIToken,
+			config.GetConfig().GetString("ai.prompt"),
+			config.GetConfig().GetString("ai.token"),
 			functioncall.TargetFriend,
 		)
 		p.aiModelMap.Set(uid, aiBot)
@@ -138,8 +138,8 @@ func (p *Plugin) getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
 	aiBot, ok := p.aiModelMap.Get(uid)
 	if !ok {
 		aiBot = aicommunicate.NewAiBot(
-			config.GetConfig().AiPrompt,
-			config.GetConfig().AIToken,
+			config.GetConfig().GetString("ai.prompt"),
+			config.GetConfig().GetString("ai.token"),
 			functioncall.TargetGroup,
 		)
 		p.aiModelMap.Set(uid, aiBot)

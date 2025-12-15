@@ -29,7 +29,7 @@ type GroupForwardChain struct {
 
 func GroupForward(groupUin uint, source string, userId string, nickname string) *GroupForwardChain {
 	return &GroupForwardChain{
-		urlpath:  config.GetConfig().NapCatServerUrl + "/send_group_forward_msg",
+		urlpath:  config.GetConfig().GetString("bot_config.napcatServerUrl") + "/send_group_forward_msg",
 		userId:   userId,
 		nickname: nickname,
 		GroupId:  groupUin,

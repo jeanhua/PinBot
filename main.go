@@ -2,11 +2,13 @@ package main
 
 import (
 	"github.com/jeanhua/PinBot/botcontext"
+	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/plugins/defaultplugin"
 	"github.com/jeanhua/PinBot/plugins/exampleplugin"
 )
 
 func main() {
+	config.LoadConfig()
 	bot := botcontext.NewBot()
 	registerPlugin(bot)
 	bot.Run()
