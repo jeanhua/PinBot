@@ -10,6 +10,7 @@ import (
 	"github.com/jeanhua/PinBot/datastructure/tuple"
 	"github.com/jeanhua/PinBot/messagechain"
 	"github.com/jeanhua/PinBot/model"
+	"github.com/jeanhua/PinBot/utils"
 )
 
 type Plugin struct {
@@ -91,7 +92,7 @@ func (p *Plugin) processGroupAIResponse(msg *model.GroupMessage, text string) {
 	if showName == "" {
 		showName = msg.Sender.Nickname
 	}
-	aiBot.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", showName, msg.Sender.UserId, text), msg, nil)
+	aiBot.Ask(fmt.Sprintf("%s [nickname: %s(%d)]: %s", utils.GetCurrentTimeString(), showName, msg.Sender.UserId, text), msg, nil)
 }
 
 // 处理私聊AI聊天
@@ -116,7 +117,7 @@ func sendPrivateBusyResponse(uid uint) {
 func (p *Plugin) processPrivateAIResponse(msg *model.FriendMessage, text string) {
 	uid := msg.UserId
 	aiBot := p.getOrCreatePrivateAIModel(uid)
-	aiBot.Ask(fmt.Sprintf("[nickname: %s(%d)]: %s", msg.Sender.Nickname, msg.Sender.UserId, text), nil, msg)
+	aiBot.Ask(fmt.Sprintf("%s [nickname: %s(%d)]: %s", utils.GetCurrentTimeString(), msg.Sender.Nickname, msg.Sender.UserId, text), nil, msg)
 }
 
 // 获取或创建私聊AI模型
