@@ -188,7 +188,9 @@ func (aiBot *AiBot) Ask(question string, group_msg *model.GroupMessage, friend_m
 		}
 
 		// 处理普通响应
-		aiBot.SendMsg(choice.Message.Content, group_msg, friend_msg)
+		if strings.TrimSpace(choice.Message.Content) != "" {
+			aiBot.SendMsg(choice.Message.Content, group_msg, friend_msg)
+		}
 		aiBot.appendMessage(&choice.Message)
 		break
 	}
