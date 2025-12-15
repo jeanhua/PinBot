@@ -23,7 +23,7 @@ func DealGroupCommand(com string, msg *model.GroupMessage) bool {
 		chain := messagechain.Group(msg.GroupId)
 		chain.Reply(msg.MessageId)
 		chain.Mention(msg.UserId)
-		chain.Text("\n" + config.GetConfig().HelpWords.Group)
+		chain.Text("\n" + config.GetConfig().GetString("bot_config.help_words.group"))
 		chain.Send()
 		return false
 	case "/plugin", "/plugins", "/插件":
@@ -43,7 +43,7 @@ func DealFriendCommand(com string, msg *model.FriendMessage) bool {
 	switch com {
 	case "/help", "/帮助":
 		chain := messagechain.Friend(msg.UserId)
-		chain.Text(config.GetConfig().HelpWords.Friend)
+		chain.Text(config.GetConfig().GetString("bot_config.help_words.friend"))
 		chain.Send()
 		return false
 	case "/plugin", "/plugins", "/插件":

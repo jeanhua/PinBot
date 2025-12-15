@@ -44,11 +44,12 @@ ai:
 
 
 function_call_config:
-  # 赞噢校园集市token
-  zanao_token: # 集市token 抓包请求头中的 X-Sc-Od
-
+  zanao_token: # 赞噢校园集市token 抓包请求头中的 X-Sc-Od
   tavily_token: # tavily api token, 用于搜索
-
   scu2class_token: # 四川大学第二课堂鉴权 token, 第二课堂相关
+  # api盒子的id和key，用于表情包
+  express_pack:
+    id:
+    key:
 
 

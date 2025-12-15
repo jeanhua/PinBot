@@ -3,7 +3,6 @@ package functioncall
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/jeanhua/PinBot/config"
 	"github.com/jeanhua/PinBot/messagechain"
@@ -31,7 +30,6 @@ var functionRegistry = map[string]FunctionHandler{
 	"speak":          &speakHandler{},
 	"webSearch":      &webSearchHandler{},
 	"webExplore":     &webExploreHandler{},
-	"getCurrentTime": &getCurrentTimeHandler{},
 	"hateImage":      &hateImageHandler{},   // 讨厌表情包
 	"searchMusic":    &searchMusicHandler{}, // 搜索网易云音乐
 	"shareMusic":     &shareMusicHandler{},  // 分享网易云音乐
@@ -39,6 +37,9 @@ var functionRegistry = map[string]FunctionHandler{
 	"scu2ClassSearch": &scu2ClassSearchHandler{},
 	"scu2ClassList":   &scu2ClassListHandler{},
 	"scu2ClassShare":  &scu2ClassShareHandler{},
+	// 表情包相关
+	"expressPackSearch": &expressionPackSearch{},
+	"expressPackSend":   expressionPackSend{},
 }
 
 const (
@@ -154,13 +155,6 @@ func (h *webExploreHandler) Handle(params map[string]any, uid uint, target int) 
 	return result, nil
 }
 
-type getCurrentTimeHandler struct{}
-
-func (h *getCurrentTimeHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
-	now := time.Now().Local()
-	return fmt.Sprintf("当前时间是 %d年%d月%d日 %d时%d分 %s", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Weekday().String()), nil
-}
-
 type hateImageHandler struct{}
 
 func (h *hateImageHandler) Handle(params map[string]any, uid uint, target int) (string, error) {
@@ -262,6 +256,35 @@ func (*scu2ClassShareHandler) Handle(params map[string]any, uid uint, target int
 		chain.Base64Image(qrIn)
 		chain.Text("签退码:\n")
 		chain.Base64Image(qrOut)
+		chain.Send()
+	}
+	return "发送成功", nil
+}
+
+type expressionPackSearch struct{}
+
+func (e expressionPackSearch) Handle(params map[string]any, uid uint, target int) (string, error) {
+	keyword, err := getStringParam(params, "keyword")
+	if err != nil {
+		return "", err
+	}
+	return utils.SearchExpressPack(keyword), nil
+}
+
+type expressionPackSend struct{}
+
+func (e expressionPackSend) Handle(params map[string]any, uid uint, target int) (string, error) {
+	urlToSend, err := getStringParam(params, "url")
+	if err != nil {
+		return "", err
+	}
+	if target == TargetGroup {
+		chain := messagechain.Group(uid)
+		chain.UrlImage(urlToSend)
+		chain.Send()
+	} else {
+		chain := messagechain.Friend(uid)
+		chain.UrlImage(urlToSend)
 		chain.Send()
 	}
 	return "发送成功", nil

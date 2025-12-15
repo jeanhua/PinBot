@@ -99,8 +99,6 @@ func initFunctionTools() []*functionCallTool {
 		withParams("text", "要发送的语音内容", "string", true),
 	))
 
-	tools.addFunction(makeFunctionCallTools("getCurrentTime", "获取当前时间"))
-
 	tools.addFunction(makeFunctionCallTools("hateImage", "发送讨厌表情包(表达生气，表情包内容为动漫卡通指着对方头像说：爬！)", withParams("userid", "用户的Id", "string", true)))
 
 	// 歌曲相关
@@ -111,6 +109,10 @@ func initFunctionTools() []*functionCallTool {
 	tools.addFunction(makeFunctionCallTools("scu2ClassSearch", "检索第二课堂系列活动", withParams("keyword", "关键词,活动名称的关键词", "string", true)))
 	tools.addFunction(makeFunctionCallTools("scu2ClassList", "通过系列活动ID获取具体活动", withParams("activityLibId", "系列活动ID", "string", true)))
 	tools.addFunction(makeFunctionCallTools("scu2ClassShare", "发送具体活动的签到签退二维码", withParams("activityId", "活动ID", "string", true)))
+
+	// 表情包
+	tools.addFunction(makeFunctionCallTools("expressPackSearch", "搜索表情包，获取链接", withParams("keyword", "关键词，表情包的关键词，比如: 开心", "string", true)))
+	tools.addFunction(makeFunctionCallTools("expressPackSend", "发送表情包", withParams("url", "表情包图片地址url", "string", true)))
 
 	return tools
 }
