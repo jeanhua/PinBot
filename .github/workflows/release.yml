@@ -71,9 +71,6 @@ jobs:
             echo "Building $GOOS/$GOARCH ..."
             GOOS=$GOOS GOARCH=$GOARCH go build -o "dist/$OUTPUT_NAME" .
 
-            echo "Listing root directory files:"
-            ls -la ../*.yaml | head || echo "No yaml files in root"
-
             if [ "$GOOS" = "windows" ]; then
               cd dist
               zip "${BINARY_NAME}_${GOOS}_${GOARCH}.zip" "$OUTPUT_NAME" ../config.yaml
