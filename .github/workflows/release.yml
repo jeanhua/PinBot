@@ -1,0 +1,100 @@
+name: Release on Tag
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # 获取当前 tag
+          CURRENT_TAG=${GITHUB_REF#refs/tags/}
+          
+          # 查找上一个 tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ github.ref }}^ 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found, using all commits"
+            CHANGES=$(git log --pretty=format:"- %h %s (%an)" --no-merges)
+          else
+            echo "Generating changelog from $PREVIOUS_TAG to $CURRENT_TAG"
+            CHANGES=$(git log --pretty=format:"- %h %s (%an)" --no-merges ${{ PREVIOUS_TAG }}..${{ github.ref }})
+          fi
+          
+          # 如果没有 commit，添加默认信息
+          if [ -z "$CHANGES" ]; then
+            CHANGES="No changes since last release."
+          fi
+          
+          # 输出多行 changelog
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Build and package for multiple platforms
+        run: |
+          BINARY_NAME=PinBot
+          
+          mkdir -p dist
+          
+          platforms=(
+            "linux/amd64"
+            "linux/arm64"
+            "windows/amd64"
+            "windows/arm64"
+            "darwin/amd64"
+            "darwin/arm64"
+          )
+          
+          for platform in "${platforms[@]}"; do
+            GOOS=${platform%/*}
+            GOARCH=${platform#*/}
+            OUTPUT="${BINARY_NAME}_${GOOS}_${GOARCH}"
+          
+            if [ "$GOOS" = "windows" ]; then
+              OUTPUT="${OUTPUT}.exe"
+            fi
+          
+            echo "Building $GOOS/$GOARCH..."
+            env GOOS=$GOOS GOARCH=$GOARCH go build -o "dist/$OUTPUT" .
+          
+            # 打包
+            if [ "$GOOS" = "windows" ]; then
+              zip -j "dist/${BINARY_NAME}_${GOOS}_${GOARCH}.zip" "dist/$OUTPUT" config.yaml
+              ASSET="dist/${BINARY_NAME}_${GOOS}_${GOARCH}.zip"
+            else
+              tar -czf "dist/${BINARY_NAME}_${GOOS}_${GOARCH}.tar.gz" -C dist $OUTPUT config.yaml
+              ASSET="dist/${BINARY_NAME}_${GOOS}_${GOARCH}.tar.gz"
+            fi
+          
+            sha256sum "$ASSET" > "$ASSET.sha256"
+          done
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CURRENT_TAG=${GITHUB_REF#refs/tags/}
+          
+          gh release create "$CURRENT_TAG" \
+            --title "Release $CURRENT_TAG" \
+            --notes "${{ steps.changelog.outputs.changelog }}" \
+            dist/*.zip dist/*.tar.gz dist/*.sha256
