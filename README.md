@@ -173,7 +173,7 @@ chain.Send()                  // 发送消息
 可以集成AI功能到插件中：
 
 ```go
-import "github.com/jeanhua/PinBot/ai/aicommunicate"
+import "github.com/jeanhua/PinBot/ai/aibot"
 
 // 创建AI模型
 aiModel := aicommunicate.NewAiBot(prompt, token, target)

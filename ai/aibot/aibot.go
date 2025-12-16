@@ -1,4 +1,4 @@
-package aicommunicate
+package aibot
 
 import (
 	"bytes"

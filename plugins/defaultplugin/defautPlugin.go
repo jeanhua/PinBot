@@ -2,7 +2,7 @@ package defaultplugin
 
 import (
 	"fmt"
-	"github.com/jeanhua/PinBot/ai/aicommunicate"
+	"github.com/jeanhua/PinBot/ai/aibot"
 	"github.com/jeanhua/PinBot/ai/functioncall"
 	"github.com/jeanhua/PinBot/botcontext"
 	"github.com/jeanhua/PinBot/config"
@@ -15,7 +15,7 @@ import (
 
 type Plugin struct {
 	currentRun chan struct{}
-	aiModelMap *concurrent.ConcurrentMap[uint, aicommunicate.AiModel]
+	aiModelMap *concurrent.ConcurrentMap[uint, aibot.AiModel]
 	repeatMap  *concurrent.ConcurrentMap[uint, tuple.Tuple[int, string]]
 }
 
@@ -26,7 +26,7 @@ func NewPlugin() *Plugin {
 	}
 	return &Plugin{
 		currentRun: make(chan struct{}, maxRun),
-		aiModelMap: concurrent.NewConcurrentMap[uint, aicommunicate.AiModel](),
+		aiModelMap: concurrent.NewConcurrentMap[uint, aibot.AiModel](),
 		repeatMap:  concurrent.NewConcurrentMap[uint, tuple.Tuple[int, string]](),
 	}
 }
@@ -121,10 +121,10 @@ func (p *Plugin) processPrivateAIResponse(msg *model.FriendMessage, text string)
 }
 
 // 获取或创建私聊AI模型
-func (p *Plugin) getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
+func (p *Plugin) getOrCreatePrivateAIModel(uid uint) aibot.AiModel {
 	aiBot, ok := p.aiModelMap.Get(uid)
 	if !ok {
-		aiBot = aicommunicate.NewAiBot(
+		aiBot = aibot.NewAiBot(
 			config.GetConfig().GetString("ai.prompt"),
 			config.GetConfig().GetString("ai.token"),
 			functioncall.TargetFriend,
@@ -135,10 +135,10 @@ func (p *Plugin) getOrCreatePrivateAIModel(uid uint) aicommunicate.AiModel {
 }
 
 // 获取或创建群AI模型
-func (p *Plugin) getOrCreateGroupAIModel(uid uint) aicommunicate.AiModel {
+func (p *Plugin) getOrCreateGroupAIModel(uid uint) aibot.AiModel {
 	aiBot, ok := p.aiModelMap.Get(uid)
 	if !ok {
-		aiBot = aicommunicate.NewAiBot(
+		aiBot = aibot.NewAiBot(
 			config.GetConfig().GetString("ai.prompt"),
 			config.GetConfig().GetString("ai.token"),
 			functioncall.TargetGroup,
