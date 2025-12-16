@@ -80,6 +80,9 @@ func handleGroupMessage(message []byte, bot *BotContext) {
 	if isExcludedGroup(groupMsg.GroupId) {
 		return
 	}
+	if isExcludedFriend(groupMsg.Sender.UserId) {
+		return
+	}
 
 	if groupMsg.Sender.UserId != groupMsg.SelfId && isIncludedGroup(groupMsg.GroupId) {
 		bot.onGroupMessage(&groupMsg)
