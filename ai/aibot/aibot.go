@@ -148,7 +148,7 @@ func (aiBot *AiBot) SendMsg(msg string, group_msg *model.GroupMessage, friend_ms
 		} else {
 			botcontext.SendLongReply(group_msg, mutMsg)
 		}
-		log.Printf("[发送群聊消息-> %d ]: %s", group_msg.Sender.UserId, msg)
+		log.Printf("[发送群聊消息-> %d ]: %s", group_msg.GroupId, msg)
 	}
 }
 
