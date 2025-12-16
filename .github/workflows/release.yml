@@ -27,8 +27,6 @@ jobs:
         run: |
           CURRENT_TAG="${GITHUB_REF#refs/tags/}"
           echo "current_tag=$CURRENT_TAG" >> $GITHUB_OUTPUT
-          
-          # 查找上一个 tag（排除当前 tag 本身）
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
 
@@ -36,18 +34,13 @@ jobs:
         id: changelog
         run: |
           if [ -z "${{ steps.tags.outputs.previous_tag }}" ]; then
-            echo "No previous tag found, generating changelog from all commits"
             CHANGES=$(git log --pretty=format:"- %h %s (%an)" --no-merges)
           else
-            echo "Generating changelog from ${{ steps.tags.outputs.previous_tag }} to ${{ steps.tags.outputs.current_tag }}"
             CHANGES=$(git log --pretty=format:"- %h %s (%an)" --no-merges ${{ steps.tags.outputs.previous_tag }}..HEAD)
           fi
-          
           if [ -z "$CHANGES" ]; then
             CHANGES="No changes since last release."
           fi
-          
-          # 多行输出到 GitHub Actions
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -78,11 +71,18 @@ jobs:
             echo "Building $GOOS/$GOARCH ..."
             GOOS=$GOOS GOARCH=$GOARCH go build -o "dist/$OUTPUT_NAME" .
 
+            echo "Listing root directory files:"
+            ls -la ../*.yaml | head || echo "No yaml files in root"
+
             if [ "$GOOS" = "windows" ]; then
-              zip -j "dist/${BINARY_NAME}_${GOOS}_${GOARCH}.zip" "dist/$OUTPUT_NAME" config.yaml
+              cd dist
+              zip "${BINARY_NAME}_${GOOS}_${GOARCH}.zip" "$OUTPUT_NAME" ../config.yaml
+              cd ..
               ASSET="dist/${BINARY_NAME}_${GOOS}_${GOARCH}.zip"
             else
-              tar -czf "dist/${BINARY_NAME}_${GOOS}_${GOARCH}.tar.gz" -C dist $OUTPUT_NAME config.yaml
+              cd dist
+              tar -czf "${BINARY_NAME}_${GOOS}_${GOARCH}.tar.gz" "$OUTPUT_NAME" ../config.yaml
+              cd ..
               ASSET="dist/${BINARY_NAME}_${GOOS}_${GOARCH}.tar.gz"
             fi
 
