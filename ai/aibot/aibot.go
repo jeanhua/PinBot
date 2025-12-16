@@ -137,6 +137,7 @@ func (aiBot *AiBot) SendMsg(msg string, group_msg *model.GroupMessage, friend_ms
 				chain.Send()
 			}
 		}
+		log.Printf("[发送私聊消息-> %d ]: %s", friend_msg.Sender.UserId, msg)
 	} else {
 		if len(mutMsg) <= 500 {
 			chain := messagechain.Group(group_msg.GroupId)
@@ -147,6 +148,7 @@ func (aiBot *AiBot) SendMsg(msg string, group_msg *model.GroupMessage, friend_ms
 		} else {
 			botcontext.SendLongReply(group_msg, mutMsg)
 		}
+		log.Printf("[发送群聊消息-> %d ]: %s", group_msg.Sender.UserId, msg)
 	}
 }
 
