@@ -22,39 +22,41 @@ jobs:
         with:
           go-version: stable
 
+      - name: Get current and previous tag
+        id: tags
+        run: |
+          CURRENT_TAG="${GITHUB_REF#refs/tags/}"
+          echo "current_tag=$CURRENT_TAG" >> $GITHUB_OUTPUT
+          
+          # 查找上一个 tag（排除当前 tag 本身）
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
       - name: Generate changelog
         id: changelog
         run: |
-          # 获取当前 tag
-          CURRENT_TAG=${GITHUB_REF#refs/tags/}
-          
-          # 查找上一个 tag
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ github.ref }}^ 2>/dev/null || echo "")
-          
-          if [ -z "$PREVIOUS_TAG" ]; then
-            echo "No previous tag found, using all commits"
+          if [ -z "${{ steps.tags.outputs.previous_tag }}" ]; then
+            echo "No previous tag found, generating changelog from all commits"
             CHANGES=$(git log --pretty=format:"- %h %s (%an)" --no-merges)
           else
-            echo "Generating changelog from $PREVIOUS_TAG to $CURRENT_TAG"
-            CHANGES=$(git log --pretty=format:"- %h %s (%an)" --no-merges ${{ PREVIOUS_TAG }}..${{ github.ref }})
+            echo "Generating changelog from ${{ steps.tags.outputs.previous_tag }} to ${{ steps.tags.outputs.current_tag }}"
+            CHANGES=$(git log --pretty=format:"- %h %s (%an)" --no-merges ${{ steps.tags.outputs.previous_tag }}..HEAD)
           fi
           
-          # 如果没有 commit，添加默认信息
           if [ -z "$CHANGES" ]; then
             CHANGES="No changes since last release."
           fi
           
-          # 输出多行 changelog
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          # 多行输出到 GitHub Actions
+          echo "body<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Build and package for multiple platforms
         run: |
-          BINARY_NAME=PinBot
-          
+          BINARY_NAME=$(basename $(pwd))
           mkdir -p dist
-          
+
           platforms=(
             "linux/amd64"
             "linux/arm64"
@@ -63,38 +65,35 @@ jobs:
             "darwin/amd64"
             "darwin/arm64"
           )
-          
+
           for platform in "${platforms[@]}"; do
             GOOS=${platform%/*}
             GOARCH=${platform#*/}
-            OUTPUT="${BINARY_NAME}_${GOOS}_${GOARCH}"
+            OUTPUT_NAME="${BINARY_NAME}_${GOOS}_${GOARCH}"
           
             if [ "$GOOS" = "windows" ]; then
-              OUTPUT="${OUTPUT}.exe"
+              OUTPUT_NAME="${OUTPUT_NAME}.exe"
             fi
-          
-            echo "Building $GOOS/$GOARCH..."
-            env GOOS=$GOOS GOARCH=$GOARCH go build -o "dist/$OUTPUT" .
-          
-            # 打包
+
+            echo "Building $GOOS/$GOARCH ..."
+            GOOS=$GOOS GOARCH=$GOARCH go build -o "dist/$OUTPUT_NAME" .
+
             if [ "$GOOS" = "windows" ]; then
-              zip -j "dist/${BINARY_NAME}_${GOOS}_${GOARCH}.zip" "dist/$OUTPUT" config.yaml
+              zip -j "dist/${BINARY_NAME}_${GOOS}_${GOARCH}.zip" "dist/$OUTPUT_NAME" config.yaml
               ASSET="dist/${BINARY_NAME}_${GOOS}_${GOARCH}.zip"
             else
-              tar -czf "dist/${BINARY_NAME}_${GOOS}_${GOARCH}.tar.gz" -C dist $OUTPUT config.yaml
+              tar -czf "dist/${BINARY_NAME}_${GOOS}_${GOARCH}.tar.gz" -C dist $OUTPUT_NAME config.yaml
               ASSET="dist/${BINARY_NAME}_${GOOS}_${GOARCH}.tar.gz"
             fi
-          
+
             sha256sum "$ASSET" > "$ASSET.sha256"
           done
 
-      - name: Create Release
+      - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CURRENT_TAG=${GITHUB_REF#refs/tags/}
-          
-          gh release create "$CURRENT_TAG" \
-            --title "Release $CURRENT_TAG" \
-            --notes "${{ steps.changelog.outputs.changelog }}" \
+          gh release create "${{ steps.tags.outputs.current_tag }}" \
+            --title "Release ${{ steps.tags.outputs.current_tag }}" \
+            --notes "${{ steps.changelog.outputs.body }}" \
             dist/*.zip dist/*.tar.gz dist/*.sha256
