@@ -111,15 +111,20 @@ func extractOB11SegmentMessage(segment []model.OB11Segment, groupid uint, limit 
 				log.Println("error when getMessageDetail: ExtraOB11SegmentMessage")
 				continue
 			}
-			next := extractOB11SegmentMessage(seg, groupid, limit-1)
+			next := extractOB11SegmentMessage(seg.Data.Message, groupid, limit-1)
 			result.WriteString("\n---↓以下为回复的消息↓---\n")
+			showName := seg.Data.Sender.Card
+			if showName == "" {
+				showName = seg.Data.Sender.Nickname
+			}
+			result.WriteString(fmt.Sprintf("[nickname: %s(%d)]: ", showName, seg.Data.Sender.UserID))
 			result.WriteString(next)
 			result.WriteString("\n---↑以上为回复的消息↑---\n")
 		case "json":
 			jsonMap := model.JsonMessage{}
 			err := json.Unmarshal([]byte(s.Data["data"].(string)), &jsonMap)
 			if err != nil {
-				log.Println("error when json unmarsharl: json message: ExtraOB11SegmentMessage")
+				log.Println("error when json unmarshal: json message: ExtraOB11SegmentMessage")
 				continue
 			}
 			result.WriteString(fmt.Sprintf("[分享卡片,标题: %s,描述: %s,链接: (%s)]", jsonMap.Meta.News.Title, jsonMap.Meta.News.Desc, jsonMap.Meta.News.JumpUrl))

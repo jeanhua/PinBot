@@ -11,7 +11,7 @@ import (
 
 type ReplyMessageInfo struct{}
 
-func (*ReplyMessageInfo) GetMessageDetail(messageId uint) ([]model.OB11Segment, error) {
+func (*ReplyMessageInfo) GetMessageDetail(messageId uint) (*model.MessageDetail, error) {
 	httpUtil := utils.HttpUtil{}
 	body := map[string]uint{
 		"message_id": messageId,
@@ -21,5 +21,5 @@ func (*ReplyMessageInfo) GetMessageDetail(messageId uint) ([]model.OB11Segment, 
 	if err != nil {
 		return nil, fmt.Errorf("error when GetMessageDetail")
 	}
-	return result.Data.Message, nil
+	return &result, nil
 }
