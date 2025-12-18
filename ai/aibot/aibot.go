@@ -245,7 +245,7 @@ func (aiBot *AiBot) appendMessage(msg *message) {
 // handleToolCalls 处理工具调用
 func (aiBot *AiBot) handleToolCalls(choice *choice, group_msg *model.GroupMessage, friend_msg *model.FriendMessage) {
 	aiBot.appendMessage(&choice.Message)
-	if choice.Message.Content != "" {
+	if strings.TrimSpace(choice.Message.Content) != "" {
 		aiBot.SendMsg(choice.Message.Content, group_msg, friend_msg)
 	}
 	// 处理工具调用
