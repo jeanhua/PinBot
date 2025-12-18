@@ -1,4 +1,4 @@
-package defaultplugin
+package defaultaiplugin
 
 import (
 	"fmt"

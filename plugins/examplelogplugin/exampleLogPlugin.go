@@ -1,4 +1,4 @@
-package exampleplugin
+package examplelogplugin
 
 import (
 	"log"
