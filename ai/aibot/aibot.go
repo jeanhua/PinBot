@@ -201,16 +201,14 @@ func (aiBot *AiBot) Ask(question string, group_msg *model.GroupMessage, friend_m
 // checkNeedReset 检查是否需要重置对话
 func (aiBot *AiBot) checkNeedReset(question string) {
 	// 自动重置对话
+	exHour := 0
 	switch aiBot.target {
 	case functioncall.TargetFriend:
-		exHour := config.GetConfig().GetInt64("ai.auto_reset_history.friend")
-		duration := time.Duration(exHour) * time.Hour
-		if aiBot.theLastCommunicateTime.Add(duration).Before(time.Now()) {
-			log.Printf("上次对话时间超过%d小时，已重置对话", exHour)
-			aiBot.resetConversation()
-		}
+		exHour = config.GetConfig().GetInt("ai.auto_reset_history.friend")
 	case functioncall.TargetGroup:
-		exHour := config.GetConfig().GetInt64("ai.auto_reset_history.group")
+		exHour = config.GetConfig().GetInt("ai.auto_reset_history.group")
+	}
+	if exHour > 0 {
 		duration := time.Duration(exHour) * time.Hour
 		if aiBot.theLastCommunicateTime.Add(duration).Before(time.Now()) {
 			log.Printf("上次对话时间超过%d小时，已重置对话", exHour)
