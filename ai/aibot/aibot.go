@@ -200,21 +200,25 @@ func (aiBot *AiBot) Ask(question string, group_msg *model.GroupMessage, friend_m
 
 // checkNeedReset 检查是否需要重置对话
 func (aiBot *AiBot) checkNeedReset(question string) {
-	// 三小时自动重置对话
-	if aiBot.theLastCommunicateTime.Add(time.Hour * 3).Before(time.Now()) {
-		aiBot.resetConversation()
+	// 自动重置对话
+	switch aiBot.target {
+	case functioncall.TargetFriend:
+		exHour := config.GetConfig().GetInt64("ai.auto_reset_history.friend")
+		duration := time.Duration(exHour) * time.Hour
+		if aiBot.theLastCommunicateTime.Add(duration).Before(time.Now()) {
+			log.Printf("上次对话时间超过%d小时，已重置对话", exHour)
+			aiBot.resetConversation()
+		}
+	case functioncall.TargetGroup:
+		exHour := config.GetConfig().GetInt64("ai.auto_reset_history.group")
+		duration := time.Duration(exHour) * time.Hour
+		if aiBot.theLastCommunicateTime.Add(duration).Before(time.Now()) {
+			log.Printf("上次对话时间超过%d小时，已重置对话", exHour)
+			aiBot.resetConversation()
+		}
 	}
 	aiBot.theLastCommunicateTime = time.Now()
 	if strings.Contains(question, "#新对话") {
-		aiBot.resetConversation()
-	} else {
-		aiBot.autoNewCommunication()
-	}
-}
-
-// autoNewCommunication 自动新对话
-func (aiBot *AiBot) autoNewCommunication() {
-	if len(aiBot.messageChain) >= 120 {
 		aiBot.resetConversation()
 	}
 }

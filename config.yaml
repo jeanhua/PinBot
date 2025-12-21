@@ -31,6 +31,10 @@ bot_config:
 
 ai:
   # AI config
+  # 自动重置清除历史对话时间(小时)
+  auto_reset_history:
+    group: 3
+    friend: 6
   # AI 配置 兼容openai规范
   request_url: # 请求地址
   model_name: # 请求的模型
